@@ -483,11 +483,11 @@ td {
     width: 2%;
 }
 
-/* 인쇄 스타일 */
+/* 인쇄 스타일 - 공간 최적화 */
 @media print {
     @page {
         size: A4;
-        margin: 5mm;
+        margin: 3mm;
     }
 
     body {
@@ -495,10 +495,7 @@ td {
         padding: 0;
     }
 
-    .setup-container {
-        display: none !important;
-    }
-
+    .setup-container,
     .viewer-header {
         display: none !important;
     }
@@ -513,18 +510,18 @@ td {
     }
 
     .header {
-        margin-bottom: 1mm;
+        margin-bottom: 0.5mm;
     }
 
     #page-title {
-        font-size: 11px;
-        margin-bottom: 0.5mm;
-        letter-spacing: 2px;
+        font-size: 10px;
+        margin-bottom: 0.3mm;
+        letter-spacing: 1.5px;
     }
 
     #page-date {
-        font-size: 7px;
-        margin-bottom: 1mm;
+        font-size: 6.5px;
+        margin-bottom: 0.5mm;
     }
 
     .no-print {
@@ -533,7 +530,7 @@ td {
 
     table {
         page-break-inside: avoid;
-        font-size: 5.5px;
+        font-size: 6px;
         border: none;
     }
 
@@ -548,26 +545,27 @@ td {
 
     th,
     td {
-        padding: 0.3mm 0.5mm;
-        font-size: 5.5px;
+        padding: 0.4mm 0.6mm;
+        font-size: 6px;
         border: 1px solid #000;
-        line-height: 1;
+        line-height: 1.05;
     }
 
     th {
-        height: 2.8mm;
+        height: 3mm;
         background: #f9fafb !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
 
     td {
-        height: 2.5mm;
+        height: 2.7mm;
     }
 
     .gap-cell {
         border: none !important;
         background: white !important;
+        width: 3mm;
     }
 
     .concurrent-highlight {
@@ -583,7 +581,7 @@ td {
     }
 
     .concurrent-badge {
-        font-size: 4.5px;
+        font-size: 5px;
     }
 }
 
