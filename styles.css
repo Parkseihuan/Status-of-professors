@@ -487,7 +487,7 @@ td {
 @media print {
     @page {
         size: A4;
-        margin: 8mm;
+        margin: 5mm;
     }
 
     body {
@@ -496,6 +496,10 @@ td {
     }
 
     .setup-container {
+        display: none !important;
+    }
+
+    .viewer-header {
         display: none !important;
     }
 
@@ -508,13 +512,28 @@ td {
         border-radius: 0;
     }
 
+    .header {
+        margin-bottom: 1mm;
+    }
+
+    #page-title {
+        font-size: 11px;
+        margin-bottom: 0.5mm;
+        letter-spacing: 2px;
+    }
+
+    #page-date {
+        font-size: 7px;
+        margin-bottom: 1mm;
+    }
+
     .no-print {
         display: none !important;
     }
 
     table {
         page-break-inside: avoid;
-        font-size: 6.5px;
+        font-size: 5.5px;
         border: none;
     }
 
@@ -529,20 +548,21 @@ td {
 
     th,
     td {
-        padding: 0.5mm 1mm;
-        font-size: 6.5px;
+        padding: 0.3mm 0.5mm;
+        font-size: 5.5px;
         border: 1px solid #000;
+        line-height: 1;
     }
 
     th {
-        height: 4mm;
+        height: 2.8mm;
         background: #f9fafb !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
 
     td {
-        height: 3.5mm;
+        height: 2.5mm;
     }
 
     .gap-cell {
@@ -560,6 +580,10 @@ td {
         background: #fafafa !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
+    }
+
+    .concurrent-badge {
+        font-size: 4.5px;
     }
 }
 
