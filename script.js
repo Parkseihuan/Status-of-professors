@@ -16,6 +16,9 @@ async function loadData() {
     }
 }
 
+// Global data for tooltips and summary
+let professorPositions = {};
+
 // Render the table with two-column layout
 function renderTable(data) {
     const container = document.getElementById('table-container');
@@ -36,6 +39,11 @@ function renderTable(data) {
         headerRow.appendChild(th);
     });
 
+    // Gap header
+    const gapTh = document.createElement('th');
+    gapTh.className = 'gap-cell col-gap';
+    headerRow.appendChild(gapTh);
+
     // Right section headers
     data.headers.right.forEach(header => {
         const th = document.createElement('th');
@@ -47,29 +55,21 @@ function renderTable(data) {
     thead.appendChild(headerRow);
     table.appendChild(thead);
 
-    // Detect concurrent positions (same person with multiple positions)
+    // 1. Analyze Data (Count and collect positions)
     const nameCount = {};
-    const nameToConcurrentClass = {};
-    const colors = ['concurrent-1', 'concurrent-2', 'concurrent-3', 'concurrent-4',
-        'concurrent-5', 'concurrent-6', 'concurrent-7', 'concurrent-8'];
-    let colorIndex = 0;
+    professorPositions = {}; // Reset
 
-    // Count occurrences of each name
     data.rows.forEach(row => {
         ['left', 'right'].forEach(side => {
             const name = row[side].name;
+            const position = row[side].position;
             if (name && name.trim()) {
                 nameCount[name] = (nameCount[name] || 0) + 1;
+
+                if (!professorPositions[name]) professorPositions[name] = [];
+                professorPositions[name].push(position);
             }
         });
-    });
-
-    // Assign colors to names that appear more than once
-    Object.keys(nameCount).forEach(name => {
-        if (nameCount[name] > 1) {
-            nameToConcurrentClass[name] = colors[colorIndex % colors.length];
-            colorIndex++;
-        }
     });
 
     // Create table body
@@ -77,17 +77,12 @@ function renderTable(data) {
 
     // Track category for rowspan
     let lastLeftCategory = '';
-    let leftCategoryRowspan = 0;
-    let leftCategoryCell = null;
+    let leftCategoryGroups = {};
 
     let lastRightCategory = '';
-    let rightCategoryRowspan = 0;
-    let rightCategoryCell = null;
+    let rightCategoryGroups = {};
 
     // First pass: count rowspans
-    const leftCategoryGroups = {};
-    const rightCategoryGroups = {};
-
     data.rows.forEach((row, index) => {
         const leftCat = row.left.category;
         const rightCat = row.right.category;
@@ -112,7 +107,7 @@ function renderTable(data) {
 
         const tr = document.createElement('tr');
 
-        // Left section
+        // --- Left Section ---
         const leftCat = row.left.category;
 
         // Category cell (with rowspan)
@@ -139,11 +134,19 @@ function renderTable(data) {
 
         // Name
         const leftNameCell = document.createElement('td');
-        leftNameCell.textContent = row.left.name;
         leftNameCell.className = 'col-name';
-        // Add concurrent position highlighting
-        if (row.left.name && nameToConcurrentClass[row.left.name]) {
-            leftNameCell.classList.add(nameToConcurrentClass[row.left.name]);
+
+        if (row.left.name) {
+            const name = row.left.name;
+            leftNameCell.setAttribute('data-name', name);
+
+            // Concurrent logic
+            if (nameCount[name] > 1) {
+                leftNameCell.classList.add('concurrent-highlight');
+                leftNameCell.innerHTML = `${name} <span class="concurrent-badge">⭐${nameCount[name]}</span>`;
+            } else {
+                leftNameCell.textContent = name;
+            }
         }
         tr.appendChild(leftNameCell);
 
@@ -153,7 +156,12 @@ function renderTable(data) {
         leftPeriodCell.className = 'col-period';
         tr.appendChild(leftPeriodCell);
 
-        // Right section
+        // --- Gap Column ---
+        const gapTd = document.createElement('td');
+        gapTd.className = 'gap-cell col-gap';
+        tr.appendChild(gapTd);
+
+        // --- Right Section ---
         const rightCat = row.right.category;
 
         // Category cell (with rowspan)
@@ -180,11 +188,19 @@ function renderTable(data) {
 
         // Name
         const rightNameCell = document.createElement('td');
-        rightNameCell.textContent = row.right.name;
         rightNameCell.className = 'col-name';
-        // Add concurrent position highlighting
-        if (row.right.name && nameToConcurrentClass[row.right.name]) {
-            rightNameCell.classList.add(nameToConcurrentClass[row.right.name]);
+
+        if (row.right.name) {
+            const name = row.right.name;
+            rightNameCell.setAttribute('data-name', name);
+
+            // Concurrent logic
+            if (nameCount[name] > 1) {
+                rightNameCell.classList.add('concurrent-highlight');
+                rightNameCell.innerHTML = `${name} <span class="concurrent-badge">⭐${nameCount[name]}</span>`;
+            } else {
+                rightNameCell.textContent = name;
+            }
         }
         tr.appendChild(rightNameCell);
 
@@ -198,7 +214,182 @@ function renderTable(data) {
     });
 
     table.appendChild(tbody);
+    container.innerHTML = '';
     container.appendChild(table);
+
+    // Initialize interactions (tooltip, highlight)
+    initInteractions();
+
+    // Update summary modal
+    updateSummary(nameCount);
+}
+
+function initInteractions() {
+    const tooltip = document.getElementById('custom-tooltip');
+    const nameCells = document.querySelectorAll('.col-name[data-name]');
+
+    nameCells.forEach(cell => {
+        const name = cell.getAttribute('data-name');
+
+        // Tooltip & Highlight
+        cell.addEventListener('mouseenter', (e) => { // Changed to mouseenter/leave for better performance
+            const positions = professorPositions[name];
+
+            // Highlight
+            const sameNameCells = document.querySelectorAll(`.col-name[data-name="${name}"]`);
+            sameNameCells.forEach(el => el.classList.add('highlight-concurrent'));
+
+            // Tooltip (only if concurrent)
+            if (positions && positions.length > 1) {
+                tooltip.style.display = 'block';
+                // Initial position, will be updated by mousemove
+                tooltip.style.left = (e.pageX + 15) + 'px';
+                tooltip.style.top = (e.pageY + 15) + 'px';
+
+                let html = `<span class="tooltip-title">${name} (총 ${positions.length}개)</span>`;
+                positions.forEach(pos => {
+                    html += `• ${pos}<br>`;
+                });
+                tooltip.innerHTML = html;
+            }
+        });
+
+        cell.addEventListener('mousemove', (e) => {
+            if (tooltip.style.display === 'block') {
+                tooltip.style.left = (e.pageX + 15) + 'px';
+                tooltip.style.top = (e.pageY + 15) + 'px';
+            }
+        });
+
+        cell.addEventListener('mouseleave', () => {
+            // Remove Highlight
+            const sameNameCells = document.querySelectorAll(`.col-name[data-name="${name}"]`);
+            sameNameCells.forEach(el => el.classList.remove('highlight-concurrent'));
+
+            // Hide Tooltip
+            tooltip.style.display = 'none';
+        });
+    });
+}
+
+function updateSummary(nameCount) {
+    const list = document.getElementById('summary-list');
+    list.innerHTML = '';
+
+    // Sort by count desc
+    const sorted = Object.keys(nameCount)
+        .filter(name => nameCount[name] > 1)
+        .sort((a, b) => nameCount[b] - nameCount[a]);
+
+    sorted.forEach(name => {
+        const li = document.createElement('li');
+        li.className = 'summary-item';
+        li.innerHTML = `<span>${name}</span> <span class="summary-count">⭐${nameCount[name]}</span>`;
+        list.appendChild(li);
+    });
+}
+
+function toggleSummaryModal() {
+    const modal = document.getElementById('summary-modal');
+    modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+}
+
+// --- Arrow Drawing Logic ---
+
+let arrowsVisible = false;
+
+function toggleConcurrentArrows() {
+    const arrowLayer = document.getElementById('arrow-layer');
+    arrowsVisible = !arrowsVisible;
+
+    if (arrowsVisible) {
+        arrowLayer.style.display = 'block';
+        drawArrows();
+        // Redraw on resize
+        window.addEventListener('resize', drawArrows);
+    } else {
+        arrowLayer.style.display = 'none';
+        window.removeEventListener('resize', drawArrows);
+    }
+}
+
+function drawArrows() {
+    const svg = document.getElementById('arrow-layer');
+    svg.innerHTML = ''; // Clear existing
+
+    // Define arrow marker
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    marker.setAttribute('id', 'arrowhead');
+    marker.setAttribute('markerWidth', '10');
+    marker.setAttribute('markerHeight', '7');
+    marker.setAttribute('refX', '9');
+    marker.setAttribute('refY', '3.5');
+    marker.setAttribute('orient', 'auto');
+
+    const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    polygon.setAttribute('points', '0 0, 10 3.5, 0 7');
+    polygon.setAttribute('fill', '#333');
+    polygon.setAttribute('opacity', '0.6');
+
+    marker.appendChild(polygon);
+    defs.appendChild(marker);
+    svg.appendChild(defs);
+
+    // Find concurrent positions
+    const nameCells = Array.from(document.querySelectorAll('.col-name[data-name]'));
+    const nameGroups = {};
+
+    nameCells.forEach(cell => {
+        const name = cell.getAttribute('data-name');
+        if (!nameGroups[name]) nameGroups[name] = [];
+        nameGroups[name].push(cell);
+    });
+
+    // Draw arrows
+    Object.keys(nameGroups).forEach(name => {
+        const cells = nameGroups[name];
+        if (cells.length < 2) return;
+
+        // Sort by vertical position
+        cells.sort((a, b) => {
+            const rectA = a.getBoundingClientRect();
+            const rectB = b.getBoundingClientRect();
+            return rectA.top - rectB.top;
+        });
+
+        for (let i = 0; i < cells.length - 1; i++) {
+            const startCell = cells[i];
+            const endCell = cells[i + 1];
+
+            const startRect = startCell.getBoundingClientRect();
+            const endRect = endCell.getBoundingClientRect();
+            const containerRect = document.querySelector('.page-container').getBoundingClientRect();
+
+            // Calculate coordinates relative to container
+            // Start from bottom center of start cell
+            const startX = startRect.left + startRect.width / 2 - containerRect.left;
+            const startY = startRect.bottom - containerRect.top;
+
+            // End at top center of end cell
+            const endX = endRect.left + endRect.width / 2 - containerRect.left;
+            const endY = endRect.top - containerRect.top;
+
+            // Create path
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('class', 'arrow-path');
+
+            // Curve logic
+            const controlY1 = startY + 20;
+            const controlY2 = endY - 20;
+
+            // If cells are far apart horizontally, curve more
+            const d = `M ${startX} ${startY} C ${startX} ${controlY1}, ${endX} ${controlY2}, ${endX} ${endY}`;
+
+            path.setAttribute('d', d);
+            svg.appendChild(path);
+        }
+    });
 }
 
 // Get column class based on header name
@@ -209,7 +400,6 @@ function getColumnClass(header) {
     if (header === '기 간') return 'col-period';
     return '';
 }
-
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {

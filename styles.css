@@ -18,6 +18,8 @@ body {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     width: 210mm;
     min-height: 297mm;
+    position: relative;
+    /* For SVG overlay */
 }
 
 /* 헤더 */
@@ -55,6 +57,48 @@ body {
     cursor: pointer;
 }
 
+.check-button {
+    padding: 4px 10px;
+    font-size: 11px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.summary-button {
+    padding: 4px 10px;
+    font-size: 11px;
+    background-color: #FF9800;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+/* SVG Layer */
+.arrow-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+    display: none;
+}
+
+.arrow-path {
+    fill: none;
+    stroke: #333;
+    stroke-width: 1.5;
+    stroke-dasharray: 4, 4;
+    opacity: 0.6;
+}
+
 /* 테이블 스타일 - 일관된 테두리 */
 table {
     width: 100%;
@@ -62,7 +106,8 @@ table {
     margin-bottom: 0;
     font-size: 6.5px;
     table-layout: fixed;
-    border: 1px solid #000;
+    border: none;
+    /* 전체 테두리 제거 (gap 때문에) */
 }
 
 th,
@@ -79,12 +124,17 @@ th {
     font-weight: bold;
     font-size: 6.5px;
     height: 4mm;
-    border: 1px solid #000;
 }
 
 td {
     height: 3.5mm;
-    border: 1px solid #000;
+}
+
+/* Gap Column Style */
+.gap-cell {
+    border: none !important;
+    background: white !important;
+    width: 5mm;
 }
 
 /* 구분 컬럼 스타일 */
@@ -98,47 +148,114 @@ td {
     background-color: #fff;
 }
 
-/* 겸직 교수 색상 표시 */
-.concurrent-1 {
-    background-color: #FFE6E6;
+/* 겸직 교수 표시 최적화 */
+.concurrent-highlight {
+    background-color: #FFFFE0 !important;
+    /* 연노랑 */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
 }
 
-/* 연한 빨강 */
-.concurrent-2 {
-    background-color: #E6F3FF;
+.concurrent-badge {
+    font-size: 0.9em;
+    color: #FF5722;
+    margin-left: 2px;
+    font-weight: bold;
+    vertical-align: super;
+    font-size: 5px;
 }
 
-/* 연한 파랑 */
-.concurrent-3 {
-    background-color: #E6FFE6;
+/* Custom Tooltip */
+.custom-tooltip {
+    position: absolute;
+    background: white;
+    border: 1px solid #333;
+    padding: 5px 8px;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    font-size: 10px;
+    pointer-events: none;
+    display: none;
+    text-align: left;
+    white-space: pre-line;
+    line-height: 1.4;
+    min-width: 150px;
 }
 
-/* 연한 초록 */
-.concurrent-4 {
-    background-color: #FFF3E6;
+.tooltip-title {
+    font-weight: bold;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 3px;
+    margin-bottom: 3px;
+    display: block;
 }
 
-/* 연한 주황 */
-.concurrent-5 {
-    background-color: #F3E6FF;
+/* Summary Modal */
+.summary-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 15px;
+    border: 1px solid #ccc;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    max-height: 80vh;
+    overflow-y: auto;
+    display: none;
+    width: 280px;
+    border-radius: 5px;
 }
 
-/* 연한 보라 */
-.concurrent-6 {
-    background-color: #FFFFE6;
+.summary-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #333;
+    padding-bottom: 5px;
 }
 
-/* 연한 노랑 */
-.concurrent-7 {
-    background-color: #E6FFFF;
+.close-modal {
+    cursor: pointer;
+    font-size: 18px;
+    color: #999;
 }
 
-/* 연한 청록 */
-.concurrent-8 {
-    background-color: #FFE6F3;
+.close-modal:hover {
+    color: #333;
 }
 
-/* 연한 분홍 */
+.summary-list {
+    list-style: none;
+    padding: 0;
+}
+
+.summary-item {
+    margin-bottom: 5px;
+    font-size: 12px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.summary-count {
+    font-weight: bold;
+    color: #FF5722;
+}
+
+/* Hover Highlight Effect (Red Border) */
+.highlight-concurrent {
+    outline: 2px solid red !important;
+    font-weight: bold;
+    position: relative;
+    z-index: 10;
+}
 
 /* 2단 레이아웃 */
 .two-column-table {
@@ -147,6 +264,7 @@ td {
 }
 
 /* 컬럼 너비 최적화 */
+/* Left Section */
 .two-column-table .col-category {
     width: 10%;
 }
@@ -163,10 +281,9 @@ td {
     width: 11%;
 }
 
-/* 왼쪽 섹션의 마지막 컬럼 (기간) - 오른쪽에 굵은 테두리 */
-.two-column-table tbody tr td:nth-child(4),
-.two-column-table thead tr th:nth-child(4) {
-    border-right: 2px solid #000;
+/* Gap */
+.two-column-table .col-gap {
+    width: 2%;
 }
 
 /* 인쇄 스타일 */
@@ -196,7 +313,7 @@ td {
     table {
         page-break-inside: avoid;
         font-size: 6.5px;
-        border: 1px solid #000;
+        border: none;
     }
 
     tr {
@@ -217,65 +334,22 @@ td {
 
     th {
         height: 4mm;
-        border: 1px solid #000;
     }
 
     td {
         height: 3.5mm;
-        border: 1px solid #000;
     }
 
-    #page-title {
-        font-size: 13px;
-        letter-spacing: 4px;
-        margin-bottom: 2mm;
+    /* Gap Cell Print Style */
+    .gap-cell {
+        border: none !important;
+        background: white !important;
     }
 
-    #page-date {
-        font-size: 8px;
-        margin-bottom: 2mm;
-    }
-
-    .header {
-        margin-bottom: 2mm;
-    }
-
-    /* 왼쪽 섹션 구분선 */
-    .two-column-table tbody tr td:nth-child(4),
-    .two-column-table thead tr th:nth-child(4) {
-        border-right: 2px solid #000;
-    }
-
-    /* 겸직 교수 색상 인쇄 시에도 표시 */
-    .concurrent-1 {
-        background-color: #FFE6E6 !important;
-    }
-
-    .concurrent-2 {
-        background-color: #E6F3FF !important;
-    }
-
-    .concurrent-3 {
-        background-color: #E6FFE6 !important;
-    }
-
-    .concurrent-4 {
-        background-color: #FFF3E6 !important;
-    }
-
-    .concurrent-5 {
-        background-color: #F3E6FF !important;
-    }
-
-    .concurrent-6 {
-        background-color: #FFFFE6 !important;
-    }
-
-    .concurrent-7 {
-        background-color: #E6FFFF !important;
-    }
-
-    .concurrent-8 {
-        background-color: #FFE6F3 !important;
+    /* 겸직 표시 인쇄 시에도 유지 */
+    .concurrent-highlight {
+        background-color: #FFFFE0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 }
