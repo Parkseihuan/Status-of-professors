@@ -17,7 +17,7 @@
         <h1 class="setup-title">교원 보직자 현황 생성기</h1>
         <p class="setup-subtitle">엑셀 파일을 업로드하여 리포트를 생성합니다.</p>
 
-        <div class="upload-grid">
+        <div class="upload-grid upload-grid-three">
             <!-- Criteria File -->
             <div class="upload-zone" id="drop-zone-criteria">
                 <div class="icon">📋</div>
@@ -34,6 +34,15 @@
                 <p class="file-name" id="file-name-data">교원_발령사항_현황_*.xlsx</p>
                 <p class="status">파일을 드래그하거나 클릭하세요</p>
                 <input type="file" id="input-data" accept=".xlsx, .xls" hidden>
+            </div>
+
+            <!-- Org Chart File (Optional) -->
+            <div class="upload-zone upload-zone-optional" id="drop-zone-orgchart">
+                <div class="icon">🏢</div>
+                <h3>조직도 파일 (선택)</h3>
+                <p class="file-name" id="file-name-orgchart">용인대기구조직표.ppt</p>
+                <p class="status">파일을 드래그하거나 클릭하세요</p>
+                <input type="file" id="input-orgchart" accept=".ppt, .pptx, .pdf, .png, .jpg" hidden>
             </div>
         </div>
 
