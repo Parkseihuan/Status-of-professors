@@ -1,6 +1,7 @@
 // Global variables
 let criteriaFile = null;
 let dataFile = null;
+let orgChartFile = null; // New: org chart reference file
 let professorPositions = {}; // For tooltips
 let currentProcessedData = null; // For download
 
@@ -13,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initDragAndDrop();
         document.getElementById('input-criteria').addEventListener('change', (e) => handleFileSelect(e, 'criteria'));
         document.getElementById('input-data').addEventListener('change', (e) => handleFileSelect(e, 'data'));
+        document.getElementById('input-orgchart').addEventListener('change', (e) => handleFileSelect(e, 'orgchart'));
         document.getElementById('btn-generate').addEventListener('click', generateReport);
     } else {
         // Viewer Mode
@@ -44,7 +46,7 @@ async function loadData() {
 
 // Drag & Drop
 function initDragAndDrop() {
-    const zones = ['drop-zone-criteria', 'drop-zone-data'];
+    const zones = ['drop-zone-criteria', 'drop-zone-data', 'drop-zone-orgchart'];
 
     zones.forEach(id => {
         const zone = document.getElementById(id);
@@ -67,7 +69,9 @@ function initDragAndDrop() {
 
             if (e.dataTransfer.files.length) {
                 const file = e.dataTransfer.files[0];
-                const type = id === 'drop-zone-criteria' ? 'criteria' : 'data';
+                let type = 'data';
+                if (id === 'drop-zone-criteria') type = 'criteria';
+                else if (id === 'drop-zone-orgchart') type = 'orgchart';
                 handleFile(file, type);
             }
         });
@@ -82,17 +86,18 @@ function handleFileSelect(e, type) {
 
 function handleFile(file, type) {
     // Update UI
-    const zoneId = type === 'criteria' ? 'drop-zone-criteria' : 'drop-zone-data';
-    const nameId = type === 'criteria' ? 'file-name-criteria' : 'file-name-data';
+    const zoneId = type === 'criteria' ? 'drop-zone-criteria' : (type === 'orgchart' ? 'drop-zone-orgchart' : 'drop-zone-data');
+    const nameId = type === 'criteria' ? 'file-name-criteria' : (type === 'orgchart' ? 'file-name-orgchart' : 'file-name-data');
 
     document.getElementById(zoneId).classList.add('uploaded');
     document.getElementById(nameId).textContent = file.name;
 
     // Store file
     if (type === 'criteria') criteriaFile = file;
+    else if (type === 'orgchart') orgChartFile = file;
     else dataFile = file;
 
-    // Enable button if both files present
+    // Enable button if both required files present (orgchart is optional)
     if (criteriaFile && dataFile) {
         document.getElementById('btn-generate').disabled = false;
     }
