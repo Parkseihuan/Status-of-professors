@@ -7,6 +7,13 @@ let orgChartData = null;
 let currentOrgZoom = 1;
 const ORG_ZOOM_STEP = 0.1;
 
+// Panning variables
+let isPanning = false;
+let panStartX = 0;
+let panStartY = 0;
+let currentTranslateX = 0;
+let currentTranslateY = 0;
+
 // ==================== PARSING FUNCTIONS ====================
 
 // Parse org chart Excel file (대학기구표2.xlsx format)
@@ -142,10 +149,10 @@ function renderOrgChartWithHierarchy(data) {
     // Store for later use
     orgChartData = hierarchy;
 
-    // Layout calculation
-    const LEVEL_HEIGHT = 120;
-    const NODE_WIDTH = 160;
-    const SIBLING_GAP = 30;
+    // Layout calculation - Tighter layout
+    const LEVEL_HEIGHT = 100; // Reduced from 120
+    const NODE_WIDTH = 140;   // Reduced from 160
+    const SIBLING_GAP = 20;   // Reduced from 30
 
     let maxX = 0;
     let maxY = 0;
@@ -190,17 +197,28 @@ function renderOrgChartWithHierarchy(data) {
     });
 
     // Calculate fit-to-screen zoom
-    const containerWidth = canvas.parentElement.clientWidth - 80;
-    const containerHeight = canvas.parentElement.clientHeight - 80;
-    const scaleX = containerWidth / Math.max(currentRootX, 1200);
-    const scaleY = containerHeight / Math.max(maxY + 100, 600);
-    const initialZoom = Math.min(scaleX, scaleY, 1);
+    const container = document.getElementById('org-chart-container');
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+
+    const contentWidth = currentRootX + 100;
+    const contentHeight = maxY + 100;
+
+    const scaleX = containerWidth / contentWidth;
+    const scaleY = containerHeight / contentHeight;
+    const initialZoom = Math.min(scaleX, scaleY, 1) * 0.9; // 90% fit
 
     currentOrgZoom = initialZoom;
-    canvas.style.width = `${Math.max(currentRootX, 1200)}px`;
-    canvas.style.height = `${maxY + 100}px`;
-    canvas.style.transform = `scale(${currentOrgZoom})`;
-    canvas.style.transformOrigin = 'top center';
+
+    // Center the chart initially
+    currentTranslateX = (containerWidth - contentWidth * currentOrgZoom) / 2;
+    currentTranslateY = 50; // Top padding
+
+    // Apply transform
+    applyOrgTransform();
+
+    // Initialize panning
+    initOrgChartPanning();
 }
 
 // Fallback: build simple hierarchy from professor data
@@ -325,10 +343,10 @@ function drawOrgTree(node, container, svg) {
 
 // Draw connection line between parent and child
 function drawOrgConnection(parent, child, svg) {
-    const parentX = parent.x + 80;
-    const parentY = parent.y + 60;
+    const parentX = parent.x + 70; // Center of 140px width
+    const parentY = parent.y + 50; // Bottom of node approx
 
-    const childX = child.x + 80;
+    const childX = child.x + 70;
     const childY = child.y;
 
     const midY = (parentY + childY) / 2;
@@ -350,42 +368,102 @@ function drawOrgConnection(parent, child, svg) {
 // Zoom functions
 function orgZoomIn() {
     currentOrgZoom += ORG_ZOOM_STEP;
-    applyOrgZoom();
+    applyOrgTransform();
 }
 
 function orgZoomOut() {
-    if (currentOrgZoom > 0.2) {
+    if (currentOrgZoom > 0.1) {
         currentOrgZoom -= ORG_ZOOM_STEP;
-        applyOrgZoom();
+        applyOrgTransform();
     }
 }
 
 function orgResetZoom() {
-    currentOrgZoom = 1;
-    applyOrgZoom();
+    // Recalculate fit-to-screen
+    const container = document.getElementById('org-chart-container');
+    const canvas = document.getElementById('org-chart-canvas');
+    // ... logic similar to initial render ...
+    // For simplicity, just reset to 1.0 or call render again
+    if (orgChartData) {
+        renderOrgChartWithHierarchy({ orgChart: orgChartData });
+    }
 }
 
-function applyOrgZoom() {
+function applyOrgTransform() {
     const canvas = document.getElementById('org-chart-canvas');
     if (canvas) {
-        canvas.style.transform = `scale(${currentOrgZoom})`;
-        canvas.style.transformOrigin = 'top center';
+        canvas.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px) scale(${currentOrgZoom})`;
     }
 }
 
-// Mouse wheel zoom
-function initOrgChartMouseWheel() {
+// Panning Logic
+function initOrgChartPanning() {
     const container = document.getElementById('org-chart-container');
-    if (container) {
-        container.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            if (e.deltaY < 0) {
-                orgZoomIn();
-            } else {
-                orgZoomOut();
-            }
-        });
-    }
+    if (!container) return;
+
+    // Remove existing listeners to avoid duplicates (naive approach)
+    const newContainer = container.cloneNode(true);
+    container.parentNode.replaceChild(newContainer, container);
+
+    // Re-select
+    const freshContainer = document.getElementById('org-chart-container');
+
+    freshContainer.addEventListener('mousedown', (e) => {
+        // Ignore if clicking on a node
+        if (e.target.closest('.org-node')) return;
+
+        isPanning = true;
+        panStartX = e.clientX - currentTranslateX;
+        panStartY = e.clientY - currentTranslateY;
+        freshContainer.style.cursor = 'grabbing';
+    });
+
+    freshContainer.addEventListener('mousemove', (e) => {
+        if (!isPanning) return;
+        e.preventDefault();
+
+        currentTranslateX = e.clientX - panStartX;
+        currentTranslateY = e.clientY - panStartY;
+
+        applyOrgTransform();
+    });
+
+    freshContainer.addEventListener('mouseup', () => {
+        isPanning = false;
+        freshContainer.style.cursor = 'grab';
+    });
+
+    freshContainer.addEventListener('mouseleave', () => {
+        isPanning = false;
+        freshContainer.style.cursor = 'grab';
+    });
+
+    // Wheel Zoom
+    freshContainer.addEventListener('wheel', (e) => {
+        e.preventDefault();
+
+        const zoomSensitivity = 0.001;
+        const delta = -e.deltaY * zoomSensitivity;
+        const newZoom = Math.max(0.1, currentOrgZoom + delta);
+
+        // Zoom towards mouse pointer
+        const rect = freshContainer.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Calculate world coordinates before zoom
+        const worldX = (mouseX - currentTranslateX) / currentOrgZoom;
+        const worldY = (mouseY - currentTranslateY) / currentOrgZoom;
+
+        // Update zoom
+        currentOrgZoom = newZoom;
+
+        // Calculate new translate to keep mouse pointer at same world coordinates
+        currentTranslateX = mouseX - worldX * currentOrgZoom;
+        currentTranslateY = mouseY - worldY * currentOrgZoom;
+
+        applyOrgTransform();
+    });
 }
 
 // Highlight concurrent positions for a person
@@ -412,10 +490,10 @@ function highlightConcurrentPositions(personName) {
         const startNode = nodes[i];
         const endNode = nodes[i + 1];
 
-        const startX = parseFloat(startNode.style.left) + 80;
-        const startY = parseFloat(startNode.style.top) + 60;
+        const startX = parseFloat(startNode.style.left) + 70;
+        const startY = parseFloat(startNode.style.top) + 50;
 
-        const endX = parseFloat(endNode.style.left) + 80;
+        const endX = parseFloat(endNode.style.left) + 70;
         const endY = parseFloat(endNode.style.top);
 
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -473,8 +551,6 @@ document.addEventListener('click', (e) => {
 });
 
 // Initialize mouse wheel zoom when org chart section is shown
-document.addEventListener('DOMContentLoaded', () => {
-    initOrgChartMouseWheel();
-});
+// Note: This is now handled inside renderOrgChartWithHierarchy via initOrgChartPanning
 
 console.log('Org chart module loaded');
