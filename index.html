@@ -96,9 +96,9 @@
         <div id="org-chart-section" style="display: none;">
             <div id="org-chart-container">
                 <div class="zoom-controls no-print">
-                    <button class="zoom-btn" onclick="zoomIn()">+</button>
-                    <button class="zoom-btn" onclick="zoomOut()">−</button>
-                    <button class="zoom-btn" onclick="resetZoom()">⟲</button>
+                    <button class="zoom-btn" onclick="orgZoomIn()">+</button>
+                    <button class="zoom-btn" onclick="orgZoomOut()">−</button>
+                    <button class="zoom-btn" onclick="orgResetZoom()">⟲</button>
                 </div>
                 <div class="org-chart-canvas" id="org-chart-canvas">
                     <svg class="org-connections" id="org-connections"></svg>
@@ -121,6 +121,7 @@
     </div>
 
     <script src="script.js"></script>
+    <script src="script-orgchart.js"></script>
 </body>
 
 </html>

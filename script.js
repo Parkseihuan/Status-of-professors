@@ -1,4 +1,4 @@
-// Global variables
+﻿// Global variables
 let criteriaFile = null;
 let dataFile = null;
 let orgChartFile = null; // New: org chart reference file
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadData() {
     try {
         const response = await fetch('professor_data.json?t=' + new Date().getTime());
-        if (!response.ok) throw new Error('데이터 파일을 찾을 수 없습니다.');
+        if (!response.ok) throw new Error('?곗씠???뚯씪??李얠쓣 ???놁뒿?덈떎.');
 
         const data = await response.json();
 
@@ -38,7 +38,7 @@ async function loadData() {
     } catch (error) {
         console.error('Error loading data:', error);
         document.getElementById('table-container').innerHTML =
-            '<p style="color: red; text-align: center; padding: 20px;">데이터를 불러오는 중 오류가 발생했습니다.<br>관리자 페이지에서 데이터를 생성하여 업로드해주세요.</p>';
+            '<p style="color: red; text-align: center; padding: 20px;">?곗씠?곕? 遺덈윭?ㅻ뒗 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.<br>愿由ъ옄 ?섏씠吏?먯꽌 ?곗씠?곕? ?앹꽦?섏뿬 ?낅줈?쒗빐二쇱꽭??</p>';
     }
 }
 
@@ -108,7 +108,7 @@ async function generateReport() {
     const status = document.getElementById('status-message');
 
     btn.disabled = true;
-    status.textContent = '파일을 분석 중입니다...';
+    status.textContent = '?뚯씪??遺꾩꽍 以묒엯?덈떎...';
     status.className = 'status-message status-loading';
 
     try {
@@ -125,12 +125,25 @@ async function generateReport() {
         const dataSheet = dataWorkbook.Sheets[dataWorkbook.SheetNames[0]];
 
         const criteriaJson = XLSX.utils.sheet_to_json(criteriaSheet, { header: 1 });
-        const dataJson = XLSX.utils.sheet_to_json(dataSheet, { header: 1 }); // Raw data
-
-        // 4. Process Data
+        const dataJson = XLSX.utils.sheet_to_json(dataSheet, { header: 1 }); // Raw data        // 4. Process Data
         currentProcessedData = processData(criteriaJson, dataJson, dataFile.name);
+        
+        // 4.5. Parse Org Chart if provided
+        if (orgChartFile) {
+            try {
+                status.textContent = '議곗쭅???뚯씪??遺꾩꽍 以묒엯?덈떎...';
+                const orgNodes = await parseOrgChartFile(orgChartFile);
+                const orgRoots = buildOrgHierarchyFromFile(orgNodes);
+                const matchedOrgChart = matchProfessorDataToOrgChart(orgRoots, currentProcessedData);
+                currentProcessedData.orgChart = matchedOrgChart;
+                console.log('Org chart parsed successfully');
+            } catch (orgError) {
+                console.warn('Org chart parsing failed:', orgError);
+            }
+        }
 
         // 5. Render
+
         document.getElementById('setup-container').style.display = 'none';
         document.getElementById('report-section').style.display = 'block';
 
@@ -142,7 +155,7 @@ async function generateReport() {
 
     } catch (error) {
         console.error(error);
-        status.textContent = '오류 발생: ' + error.message;
+        status.textContent = '?ㅻ쪟 諛쒖깮: ' + error.message;
         status.className = 'status-message status-error';
         btn.disabled = false;
     }
@@ -150,7 +163,7 @@ async function generateReport() {
 
 function downloadJSON() {
     if (!currentProcessedData) {
-        alert('저장할 데이터가 없습니다.');
+        alert('??ν븷 ?곗씠?곌? ?놁뒿?덈떎.');
         return;
     }
 
@@ -212,20 +225,20 @@ function processData(criteriaRows, rawRows, filename) {
     // 3. Process Raw Data
     let headerRowIndex = -1;
     for (let i = 0; i < Math.min(10, rawRows.length); i++) {
-        if (rawRows[i] && rawRows[i].includes('성명')) {
+        if (rawRows[i] && rawRows[i].includes('?깅챸')) {
             headerRowIndex = i;
             break;
         }
     }
 
-    if (headerRowIndex === -1) throw new Error("데이터 파일에서 '성명' 컬럼을 찾을 수 없습니다.");
+    if (headerRowIndex === -1) throw new Error("?곗씠???뚯씪?먯꽌 '?깅챸' 而щ읆??李얠쓣 ???놁뒿?덈떎.");
 
     const headers = rawRows[headerRowIndex];
-    const nameIdx = headers.indexOf('성명');
-    const posIdx = headers.indexOf('발령직위');
-    const startIdx = headers.indexOf('발령시작일');
-    const endIdx = headers.indexOf('발령종료일');
-    const stateIdx = headers.indexOf('발령상태');
+    const nameIdx = headers.indexOf('?깅챸');
+    const posIdx = headers.indexOf('諛쒕졊吏곸쐞');
+    const startIdx = headers.indexOf('諛쒕졊?쒖옉??);
+    const endIdx = headers.indexOf('諛쒕졊醫낅즺??);
+    const stateIdx = headers.indexOf('諛쒕졊?곹깭');
 
     const activePositions = [];
 
@@ -235,10 +248,10 @@ function processData(criteriaRows, rawRows, filename) {
 
         const name = row[nameIdx];
         const position = row[posIdx];
-        const state = stateIdx !== -1 ? row[stateIdx] : '재직';
+        const state = stateIdx !== -1 ? row[stateIdx] : '?ъ쭅';
 
         if (!name || !position) continue;
-        if (state && !state.includes('재직') && !state.includes('유지')) continue;
+        if (state && !state.includes('?ъ쭅') && !state.includes('?좎?')) continue;
 
         activePositions.push({
             name: name,
@@ -276,11 +289,11 @@ function processData(criteriaRows, rawRows, filename) {
     }));
 
     return {
-        title: `교 원 보 직 자 현 황 (${dateStr})`,
-        date: `(${dateStr} 현재)`,
+        title: `援???蹂?吏???????(${dateStr})`,
+        date: `(${dateStr} ?꾩옱)`,
         headers: {
-            left: ['구분', '보 직 명', '성 명', '기 간'],
-            right: ['구분', '보 직 명', '성 명', '기 간']
+            left: ['援щ텇', '蹂?吏?紐?, '??紐?, '湲?媛?],
+            right: ['援щ텇', '蹂?吏?紐?, '??紐?, '湲?媛?]
         },
         rows: combinedRows
     };
@@ -400,14 +413,14 @@ function renderTable(data) {
         const leftCat = row.left.category;
         const rightCat = row.right.category;
 
-        if (leftCat && leftCat !== '구분') {
+        if (leftCat && leftCat !== '援щ텇') {
             if (!leftCategoryGroups[leftCat]) {
                 leftCategoryGroups[leftCat] = { start: index, count: 0 };
             }
             leftCategoryGroups[leftCat].count++;
         }
 
-        if (rightCat && rightCat !== '구분') {
+        if (rightCat && rightCat !== '援щ텇') {
             if (!rightCategoryGroups[rightCat]) {
                 rightCategoryGroups[rightCat] = { start: index, count: 0 };
             }
@@ -449,7 +462,7 @@ function renderTable(data) {
 
             if (nameCount[name] > 1) {
                 leftNameCell.classList.add('concurrent-highlight');
-                leftNameCell.innerHTML = `${name} <span class="concurrent-badge">⭐${nameCount[name]}</span>`;
+                leftNameCell.innerHTML = `${name} <span class="concurrent-badge">狩?{nameCount[name]}</span>`;
             } else {
                 leftNameCell.textContent = name;
             }
@@ -495,7 +508,7 @@ function renderTable(data) {
 
             if (nameCount[name] > 1) {
                 rightNameCell.classList.add('concurrent-highlight');
-                rightNameCell.innerHTML = `${name} <span class="concurrent-badge">⭐${nameCount[name]}</span>`;
+                rightNameCell.innerHTML = `${name} <span class="concurrent-badge">狩?{nameCount[name]}</span>`;
             } else {
                 rightNameCell.textContent = name;
             }
@@ -536,9 +549,9 @@ function initInteractions() {
                 tooltip.style.left = (e.pageX + 15) + 'px';
                 tooltip.style.top = (e.pageY + 15) + 'px';
 
-                let html = `<span class="tooltip-title">${name} (총 ${positions.length}개)</span>`;
+                let html = `<span class="tooltip-title">${name} (珥?${positions.length}媛?</span>`;
                 positions.forEach(pos => {
-                    html += `• ${pos}<br>`;
+                    html += `??${pos}<br>`;
                 });
                 tooltip.innerHTML = html;
             }
@@ -570,7 +583,7 @@ function updateSummary(nameCount) {
     sorted.forEach(name => {
         const li = document.createElement('li');
         li.className = 'summary-item';
-        li.innerHTML = `<span>${name}</span> <span class="summary-count">⭐${nameCount[name]}</span>`;
+        li.innerHTML = `<span>${name}</span> <span class="summary-count">狩?{nameCount[name]}</span>`;
         list.appendChild(li);
     });
 }
@@ -666,10 +679,10 @@ function drawArrows() {
 }
 
 function getColumnClass(header) {
-    if (header === '구분') return 'col-category';
-    if (header === '보 직 명') return 'col-position';
-    if (header === '성 명') return 'col-name';
-    if (header === '기 간') return 'col-period';
+    if (header === '援щ텇') return 'col-category';
+    if (header === '蹂?吏?紐?) return 'col-position';
+    if (header === '??紐?) return 'col-name';
+    if (header === '湲?媛?) return 'col-period';
     return '';
 }
 
@@ -694,7 +707,8 @@ function switchView(viewName) {
         // Render org chart if not already rendered
         if (document.getElementById('org-chart-canvas').children.length <= 1) {
             if (currentProcessedData) {
-                renderOrgChart(currentProcessedData);
+                                renderOrgChartWithHierarchy(currentProcessedData);
+
             } else {
                 fetch('professor_data.json?t=' + new Date().getTime())
                     .then(res => res.json())
@@ -896,3 +910,5 @@ function drawConnection(parent, child, svg) {
     
     svg.appendChild(path);
 }
+
+
