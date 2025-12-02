@@ -271,9 +271,23 @@ function drawOrgTree(node, container, svg) {
     // Interactions
     el.addEventListener('click', (e) => {
         e.stopPropagation();
+
+        // Remove previous selection
         document.querySelectorAll('.org-node').forEach(n => n.classList.remove('selected'));
         el.classList.add('selected');
-        if (el.dataset.personName) highlightConcurrentPositions(el.dataset.personName);
+
+        // Show concurrent lines only for this person
+        if (el.dataset.personName) {
+            const personName = el.dataset.personName;
+            const nodes = Array.from(document.querySelectorAll('.org-node')).filter(n => n.dataset.personName === personName);
+
+            if (nodes.length > 1) {
+                highlightConcurrentPositions(personName);
+            } else {
+                // Clear concurrent lines if no concurrent positions
+                document.querySelectorAll('.concurrent-connection').forEach(el => el.remove());
+            }
+        }
     });
 
     el.addEventListener('mouseenter', (e) => {
@@ -429,6 +443,7 @@ function hideConcurrentTooltip() {
     if (tooltip) tooltip.style.display = 'none';
 }
 
+// Click outside to hide concurrent connections
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.org-node')) {
         document.querySelectorAll('.concurrent-connection').forEach(el => el.remove());

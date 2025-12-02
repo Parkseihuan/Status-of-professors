@@ -58,8 +58,9 @@
                 <p id="page-date"></p>
 
                 <!-- View Toggle Switch -->
+                <h3 style="text-align: center; margin-top: 20px; margin-bottom: 10px; font-size: 18px;">조직도 보기</h3>
                 <div class="view-toggle-container"
-                    style="margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 15px;">
+                    style="margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 15px;">
                     <span class="toggle-label" style="cursor: pointer; font-weight: bold;"
                         onclick="document.getElementById('view-toggle-checkbox').checked = false; toggleView(document.getElementById('view-toggle-checkbox'));">표
                         (Table)</span>
@@ -77,7 +78,6 @@
                 <button class="back-button" onclick="location.reload()">⬅ 처음으로</button>
                 <button class="print-button" onclick="downloadJSON()">💾 데이터 저장 (JSON)</button>
                 <button class="print-button" onclick="window.print()">🖨️ 인쇄하기</button>
-                <button class="check-button" onclick="toggleConcurrentArrows()">🔗 겸직 확인</button>
                 <button class="summary-button" onclick="toggleSummaryModal()">📋 겸직 현황</button>
             </div>
 

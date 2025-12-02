@@ -543,6 +543,7 @@ function initInteractions() {
     nameCells.forEach(cell => {
         const name = cell.getAttribute('data-name');
 
+        // Hover for tooltip
         cell.addEventListener('mouseenter', (e) => {
             const positions = professorPositions[name];
 
@@ -574,6 +575,38 @@ function initInteractions() {
             sameNameCells.forEach(el => el.classList.remove('highlight-concurrent'));
             tooltip.style.display = 'none';
         });
+
+        // Click for arrows (NEW)
+        cell.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const positions = professorPositions[name];
+
+            if (positions && positions.length > 1) {
+                // Toggle arrows for this person
+                const arrowLayer = document.getElementById('arrow-layer');
+                const currentPerson = arrowLayer.getAttribute('data-current-person');
+
+                if (currentPerson === name) {
+                    // Hide arrows if clicking same person
+                    arrowLayer.style.display = 'none';
+                    arrowLayer.setAttribute('data-current-person', '');
+                } else {
+                    // Show arrows for this person
+                    arrowLayer.style.display = 'block';
+                    arrowLayer.setAttribute('data-current-person', name);
+                    drawArrows(name);
+                }
+            }
+        });
+    });
+
+    // Click outside to hide arrows
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.col-name[data-name]')) {
+            const arrowLayer = document.getElementById('arrow-layer');
+            arrowLayer.style.display = 'none';
+            arrowLayer.setAttribute('data-current-person', '');
+        }
     });
 }
 
@@ -598,23 +631,8 @@ function toggleSummaryModal() {
     modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
 }
 
-let arrowsVisible = false;
-
-function toggleConcurrentArrows() {
-    const arrowLayer = document.getElementById('arrow-layer');
-    arrowsVisible = !arrowsVisible;
-
-    if (arrowsVisible) {
-        arrowLayer.style.display = 'block';
-        drawArrows();
-        window.addEventListener('resize', drawArrows);
-    } else {
-        arrowLayer.style.display = 'none';
-        window.removeEventListener('resize', drawArrows);
-    }
-}
-
-function drawArrows() {
+// Modified drawArrows to accept optional person name
+function drawArrows(personName = null) {
     const svg = document.getElementById('arrow-layer');
     svg.innerHTML = '';
 
@@ -629,8 +647,8 @@ function drawArrows() {
 
     const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     polygon.setAttribute('points', '0 0, 10 3.5, 0 7');
-    polygon.setAttribute('fill', '#333');
-    polygon.setAttribute('opacity', '0.6');
+    polygon.setAttribute('fill', '#fbbf24');
+    polygon.setAttribute('opacity', '0.8');
 
     marker.appendChild(polygon);
     defs.appendChild(marker);
@@ -645,9 +663,12 @@ function drawArrows() {
         nameGroups[name].push(cell);
     });
 
-    Object.keys(nameGroups).forEach(name => {
+    // If personName is specified, only draw arrows for that person
+    const namesToDraw = personName ? [personName] : Object.keys(nameGroups);
+
+    namesToDraw.forEach(name => {
         const cells = nameGroups[name];
-        if (cells.length < 2) return;
+        if (!cells || cells.length < 2) return;
 
         cells.sort((a, b) => {
             const rectA = a.getBoundingClientRect();
@@ -661,7 +682,10 @@ function drawArrows() {
 
             const startRect = startCell.getBoundingClientRect();
             const endRect = endCell.getBoundingClientRect();
-            const containerRect = document.querySelector('.page-container').getBoundingClientRect();
+
+            // Try to get container, fallback to body
+            const container = document.querySelector('.page-container') || document.querySelector('.viewer-wrapper') || document.body;
+            const containerRect = container.getBoundingClientRect();
 
             const startX = startRect.left + startRect.width / 2 - containerRect.left;
             const startY = startRect.bottom - containerRect.top;
@@ -671,6 +695,10 @@ function drawArrows() {
 
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('class', 'arrow-path');
+            path.setAttribute('stroke', '#fbbf24');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke-dasharray', '5,5');
 
             const controlY1 = startY + 20;
             const controlY2 = endY - 20;

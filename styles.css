@@ -1,4 +1,4 @@
-/* 기본 스타일 */
+/* 기본 ?��???*/
 body {
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
     background-color: #f3f4f6;
@@ -7,7 +7,7 @@ body {
     color: #1f2937;
 }
 
-/* 뷰어 래퍼 */
+/* 뷰어 ?�퍼 */
 .viewer-wrapper {
     max-width: 1200px;
     margin: 0 auto;
@@ -19,7 +19,7 @@ body {
     position: relative;
 }
 
-/* 헤더 스타일 */
+/* ?�더 ?��???*/
 .viewer-header {
     text-align: center;
     margin-bottom: 30px;
@@ -36,7 +36,7 @@ body {
     font-size: 14px;
 }
 
-/* 컨트롤 버튼 */
+/* 컨트�?버튼 */
 .controls {
     display: flex;
     justify-content: flex-end;
@@ -84,7 +84,7 @@ button {
     background-color: #7c3aed;
 }
 
-/* 테이블 스타일 */
+/* ?�이�??��???*/
 #table-container {
     width: 100%;
     overflow-x: auto;
@@ -114,17 +114,17 @@ td {
     color: #4b5563;
 }
 
-/* 카테고리 셀 스타일 */
+/* 카테고리 ?� ?��???*/
 .category-cell {
     background-color: #f3f4f6;
     font-weight: 600;
     color: #111827;
 }
 
-/* 겸직자 강조 */
+/* 겸직??강조 */
 .concurrent-highlight {
     background-color: #fffbeb;
-    /* 연한 노란색 */
+    /* ?�한 ?��???*/
     position: relative;
 }
 
@@ -139,7 +139,7 @@ td {
     vertical-align: middle;
 }
 
-/* 화살표 레이어 */
+/* ?�살???�이??*/
 .arrow-layer {
     position: absolute;
     top: 0;
@@ -150,7 +150,7 @@ td {
     z-index: 10;
 }
 
-/* 툴팁 */
+/* ?�팁 */
 .custom-tooltip {
     position: absolute;
     background: rgba(0, 0, 0, 0.8);
@@ -227,7 +227,7 @@ td {
     color: #ef4444;
 }
 
-/* 조직도 스타일 */
+/* 조직???��???*/
 #org-chart-section {
     width: 100%;
     height: 600px;
@@ -331,7 +331,7 @@ td {
     stroke-width: 2px;
 }
 
-/* 줌 컨트롤 */
+/* �?컨트�?*/
 .zoom-controls {
     position: absolute;
     top: 20px;
@@ -361,7 +361,7 @@ td {
     color: #111827;
 }
 
-/* 토글 스위치 (iPhone Style) */
+/* ?��? ?�위�?(iPhone Style) */
 .switch {
     position: relative;
     display: inline-block;
@@ -422,14 +422,106 @@ input:checked+.slider:before {
     border-radius: 50%;
 }
 
-/* 인쇄 스타일 */
+/* ?�쇄 ?��???*/
+/* ?�쇄 ?��???- 1?�이지 ?�이?�웃 */
 @media print {
 
     .no-print,
     .viewer-header,
-    .setup-container {
+    .setup-container,
+    .controls,
+    .view-toggle-container {
         display: none !important;
     }
+
+    body {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 7px !important;
+    }
+
+    .viewer-wrapper {
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    #report-section {
+        page-break-inside: avoid !important;
+    }
+
+    table {
+        font-size: 7px !important;
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+
+    th,
+    td {
+        padding: 2px 3px !important;
+        font-size: 7px !important;
+        line-height: 1.2 !important;
+        border: 0.5px solid #999 !important;
+    }
+
+    th {
+        background-color: #f0f0f0 !important;
+        font-weight: 600 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .category-cell {
+        background-color: #e8e8e8 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .concurrent-highlight {
+        background-color: #fffbeb !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .concurrent-badge {
+        font-size: 6px !important;
+        padding: 1px 3px !important;
+    }
+
+    /* 컬럼 ?�비 최적??*/
+    .col-category {
+        width: 12% !important;
+    }
+
+    .col-position {
+        width: 20% !important;
+    }
+
+    .col-name {
+        width: 10% !important;
+    }
+
+    .col-period {
+        width: 15% !important;
+    }
+
+    .col-gap {
+        width: 1% !important;
+        border: none !important;
+        background: white !important;
+    }
+
+    /* ?�살??�?모달 ?��? */
+    .arrow-layer,
+    .custom-tooltip,
+    .summary-modal,
+    #org-chart-section {
+        display: none !important;
+    }
+}
 
     .viewer-wrapper {
         box-shadow: none;
