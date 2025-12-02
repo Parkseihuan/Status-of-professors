@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>援먯썝 蹂댁쭅???꾪솴 (愿由ъ옄)</title>
+    <title>교원 보직자 현황 (관리자)</title>
     <!-- SheetJS for Excel parsing -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="styles.css">
@@ -14,64 +14,96 @@
 
     <!-- Setup Section -->
     <div id="setup-container" class="setup-container">
-        <h1 class="setup-title">援먯썝 蹂댁쭅???꾪솴 ?앹꽦湲?/h1>
-        <p class="setup-subtitle">?묒? ?뚯씪???낅줈?쒗븯??由ы룷?몃? ?앹꽦?⑸땲??</p>
+        <h1 class="setup-title">교원 보직자 현황 생성기</h1>
+        <p class="setup-subtitle">필요 파일을 업로드하여 리포트를 생성합니다</p>
 
         <div class="upload-grid upload-grid-three">
             <!-- Criteria File -->
             <div class="upload-zone" id="drop-zone-criteria">
-                <div class="icon">?뱥</div>
-                <h3>湲곗? ?뚯씪</h3>
-                <p class="file-name" id="file-name-criteria">援щ텇 諛?蹂댁쭅紐?湲곗?.xlsx</p>
-                <p class="status">?뚯씪???쒕옒洹명븯嫄곕굹 ?대┃?섏꽭??/p>
+                <div class="icon">📋</div>
+                <h3>기준 파일</h3>
+                <p class="file-name" id="file-name-criteria">구분 및 보직명 기준.xlsx</p>
+                <p class="status">파일을 드래그하거나 클릭하세요</p>
                 <input type="file" id="input-criteria" accept=".xlsx, .xls" hidden>
             </div>
 
             <!-- Data File -->
             <div class="upload-zone" id="drop-zone-data">
-                <div class="icon">?뱤</div>
-                <h3>?곗씠???뚯씪</h3>
-                <p class="file-name" id="file-name-data">援먯썝_諛쒕졊?ы빆_?꾪솴_*.xlsx</p>
-                <p class="status">?뚯씪???쒕옒洹명븯嫄곕굹 ?대┃?섏꽭??/p>
+                <div class="icon">📊</div>
+                <h3>데이터 파일</h3>
+                <p class="file-name" id="file-name-data">교원_발령사항_현황_*.xlsx</p>
+                <p class="status">파일을 드래그하거나 클릭하세요</p>
                 <input type="file" id="input-data" accept=".xlsx, .xls" hidden>
             </div>
 
             <!-- Reference File (Org Chart) -->
             <div class="upload-zone upload-zone-optional" id="drop-zone-orgchart">
-                <div class="icon">?뾺截?/div>
-                <h3>李멸퀬?먮즺 (議곗쭅??</h3>
-                <p class="file-name" id="file-name-orgchart">??숆린援ы몴2.xlsx</p>
-                <p class="status">?뚯씪???쒕옒洹명븯嫄곕굹 ?대┃?섏꽭??/p>
+                <div class="icon">🏢</div>
+                <h3>참고문서 (조직도)</h3>
+                <p class="file-name" id="file-name-orgchart">대학기구표2.xlsx</p>
+                <p class="status">파일을 드래그하거나 클릭하세요</p>
                 <input type="file" id="input-orgchart" accept=".xlsx, .xls" hidden>
             </div>
         </div>
 
-        <button id="btn-generate" class="generate-button" disabled>由ы룷???앹꽦?섍린</button>
+        <button id="btn-generate" class="generate-button" disabled>리포트 생성하기</button>
         <div id="status-message" class="status-message"></div>
     </div>
 
-    <!-- Report Section (Initially Hidden) -->
-    <div id="report-section" style="display: none;">
+    <!-- Generated View Wrapper (Initially Hidden) -->
+    <div id="generated-view-wrapper" style="display: none;">
         <div class="page-container">
             <div class="header">
                 <h1 id="page-title"></h1>
                 <p id="page-date"></p>
+
+                <!-- View Toggle Switch -->
+                <div class="view-toggle-container"
+                    style="margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 15px;">
+                    <span class="toggle-label" style="cursor: pointer; font-weight: bold;"
+                        onclick="document.getElementById('view-toggle-checkbox').checked = false; toggleView(document.getElementById('view-toggle-checkbox'));">표
+                        (Table)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="view-toggle-checkbox" onchange="toggleView(this)">
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label" style="cursor: pointer; font-weight: bold;"
+                        onclick="document.getElementById('view-toggle-checkbox').checked = true; toggleView(document.getElementById('view-toggle-checkbox'));">조직도
+                        (Org Chart)</span>
+                </div>
             </div>
 
             <div class="controls no-print">
-                <button class="back-button" onclick="location.reload()">??泥섏쓬?쇰줈</button>
-                <button class="print-button" onclick="downloadJSON()">?뮶 ?곗씠?????(JSON)</button>
-                <button class="print-button" onclick="window.print()">?뼥截??몄뇙?섍린</button>
-                <button class="check-button" onclick="toggleConcurrentArrows()">?뵕 寃몄쭅 ?뺤씤</button>
-                <button class="summary-button" onclick="toggleSummaryModal()">?뱥 寃몄쭅 ?꾪솴</button>
+                <button class="back-button" onclick="location.reload()">⬅ 처음으로</button>
+                <button class="print-button" onclick="downloadJSON()">💾 데이터 저장 (JSON)</button>
+                <button class="print-button" onclick="window.print()">🖨️ 인쇄하기</button>
+                <button class="check-button" onclick="toggleConcurrentArrows()">🔗 겸직 확인</button>
+                <button class="summary-button" onclick="toggleSummaryModal()">📋 겸직 현황</button>
             </div>
 
-            <div id="table-container">
-                <!-- Table will be generated by JavaScript -->
+            <div id="report-section">
+                <div id="table-container">
+                    <!-- Table will be generated by JavaScript -->
+                </div>
+
+                <!-- SVG Container for Arrows -->
+                <svg id="arrow-layer" class="arrow-layer"></svg>
             </div>
 
-            <!-- SVG Container for Arrows -->
-            <svg id="arrow-layer" class="arrow-layer"></svg>
+            <!-- Org Chart Section -->
+            <div id="org-chart-section" style="display: none;">
+                <div id="org-chart-container">
+                    <div class="zoom-controls no-print">
+                        <button class="zoom-btn" onclick="orgZoomIn()">+</button>
+                        <button class="zoom-btn" onclick="orgZoomOut()">−</button>
+                        <button class="zoom-btn" onclick="orgResetZoom()">⟲</button>
+                    </div>
+                    <div class="org-chart-canvas" id="org-chart-canvas">
+                        <svg class="org-connections" id="org-connections"></svg>
+                        <!-- Org nodes will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -81,13 +113,14 @@
     <!-- Summary Modal -->
     <div id="summary-modal" class="summary-modal">
         <div class="summary-header">
-            <span>寃몄쭅???붿빟 (?곸쐞)</span>
-            <span class="close-modal" onclick="toggleSummaryModal()">횞</span>
+            <span>겸직자 요약 (상위)</span>
+            <span class="close-modal" onclick="toggleSummaryModal()">×</span>
         </div>
         <ul id="summary-list" class="summary-list"></ul>
     </div>
 
-    <script src="script.js"></script>`r`n    <script src="script-orgchart.js"></script>
+    <script src="script-orgchart.js"></script>
+    <script src="script.js"></script>
 </body>
 
 </html>

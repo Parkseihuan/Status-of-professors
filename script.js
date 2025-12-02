@@ -30,6 +30,9 @@ async function loadData() {
 
         const data = await response.json();
 
+        // Store globally for view switching
+        window.processedData = data;
+
         // Update title and date
         document.getElementById('page-title').textContent = data.title;
         document.getElementById('page-date').textContent = data.date;
@@ -146,7 +149,8 @@ async function generateReport() {
 
         // 5. Render
         document.getElementById('setup-container').style.display = 'none';
-        document.getElementById('report-section').style.display = 'block';
+        document.getElementById('generated-view-wrapper').style.display = 'block';
+        window.processedData = currentProcessedData;
 
         // Update Title and Date
         document.getElementById('page-title').textContent = currentProcessedData.title;
@@ -687,226 +691,34 @@ function getColumnClass(header) {
     return '';
 }
 
-// --- Dual View Logic ---
+// View Switching Logic
+function toggleView(checkbox) {
+    if (checkbox.checked) {
+        switchView('orgchart');
+    } else {
+        switchView('table');
+    }
+}
 
 function switchView(viewName) {
-    const reportSection = document.getElementById('report-section');
+    const tableContainer = document.getElementById('report-section');
     const orgChartSection = document.getElementById('org-chart-section');
-    const btns = document.querySelectorAll('.view-toggle-btn');
+    const checkbox = document.getElementById('view-toggle-checkbox');
 
-    btns.forEach(btn => btn.classList.remove('active'));
+    if (viewName === 'orgchart') {
+        if (tableContainer) tableContainer.style.display = 'none';
+        if (orgChartSection) orgChartSection.style.display = 'block';
+        if (checkbox) checkbox.checked = true;
 
-    if (viewName === 'table') {
-        reportSection.style.display = 'block';
-        orgChartSection.style.display = 'none';
-        btns[0].classList.add('active');
+        // Render org chart if data is available
+        if (typeof renderOrgChartWithHierarchy === 'function' && window.processedData) {
+            setTimeout(() => {
+                renderOrgChartWithHierarchy(window.processedData);
+            }, 50);
+        }
     } else {
-        reportSection.style.display = 'none';
-        orgChartSection.style.display = 'block';
-        btns[1].classList.add('active');
-
-        // Render org chart if not already rendered
-        if (document.getElementById('org-chart-canvas').children.length <= 1) {
-            if (currentProcessedData) {
-                renderOrgChartWithHierarchy(currentProcessedData);
-            } else {
-                fetch('professor_data.json?t=' + new Date().getTime())
-                    .then(res => res.json())
-                    .then(data => {
-                        currentProcessedData = data;
-                        renderOrgChartWithHierarchy(data);
-                    })
-                    .catch(err => console.error(err));
-            }
-        }
+        if (tableContainer) tableContainer.style.display = 'block';
+        if (orgChartSection) orgChartSection.style.display = 'none';
+        if (checkbox) checkbox.checked = false;
     }
-}
-
-// --- Org Chart Logic ---
-
-let currentZoom = 1;
-const ZOOM_STEP = 0.1;
-
-function zoomIn() {
-    currentZoom += ZOOM_STEP;
-    applyZoom();
-}
-
-function zoomOut() {
-    if (currentZoom > 0.2) {
-        currentZoom -= ZOOM_STEP;
-        applyZoom();
-    }
-}
-
-function resetZoom() {
-    currentZoom = 1;
-    applyZoom();
-}
-
-function applyZoom() {
-    const canvas = document.getElementById('org-chart-canvas');
-    canvas.style.transform = `scale(${currentZoom})`;
-    canvas.style.transformOrigin = 'top center';
-}
-
-function renderOrgChart(data) {
-    const canvas = document.getElementById('org-chart-canvas');
-    const svg = document.getElementById('org-connections');
-
-    Array.from(canvas.children).forEach(child => {
-        if (child.tagName !== 'svg') canvas.removeChild(child);
-    });
-    svg.innerHTML = '';
-
-    const hierarchy = buildHierarchy(data);
-
-    const LEVEL_HEIGHT = 150;
-    const NODE_WIDTH = 180;
-    const SIBLING_GAP = 20;
-
-    let maxX = 0;
-    let maxY = 0;
-
-    function calculateLayout(node, level, startX) {
-        let currentX = startX;
-        let width = NODE_WIDTH;
-
-        if (node.children && node.children.length > 0) {
-            let childrenWidth = 0;
-            node.children.forEach(child => {
-                const childDims = calculateLayout(child, level + 1, currentX);
-                currentX += childDims.width + SIBLING_GAP;
-                childrenWidth += childDims.width + SIBLING_GAP;
-            });
-            childrenWidth -= SIBLING_GAP;
-
-            node.x = startX + (childrenWidth / 2) - (NODE_WIDTH / 2);
-            width = Math.max(NODE_WIDTH, childrenWidth);
-        } else {
-            node.x = startX;
-        }
-
-        node.y = level * LEVEL_HEIGHT + 50;
-
-        maxX = Math.max(maxX, node.x + NODE_WIDTH);
-        maxY = Math.max(maxY, node.y + LEVEL_HEIGHT);
-
-        return { width: width, x: node.x };
-    }
-
-    let currentRootX = 50;
-    hierarchy.forEach(root => {
-        const dims = calculateLayout(root, 0, currentRootX);
-        currentRootX += dims.width + 50;
-    });
-
-    hierarchy.forEach(root => {
-        drawTree(root, canvas, svg);
-    });
-
-    canvas.style.width = `${Math.max(currentRootX, 1200)}px`;
-    canvas.style.height = `${maxY + 100}px`;
-}
-
-function buildHierarchy(data) {
-    const roots = [];
-    const categoryMap = {};
-
-    function getCategoryNode(catName) {
-        if (!categoryMap[catName]) {
-            const node = {
-                id: `cat-${catName}`,
-                type: 'category',
-                label: catName,
-                children: []
-            };
-            categoryMap[catName] = node;
-            roots.push(node);
-        }
-        return categoryMap[catName];
-    }
-
-    data.rows.forEach(row => {
-        ['left', 'right'].forEach(side => {
-            const item = row[side];
-            if (item.category && item.position) {
-                const catNode = getCategoryNode(item.category);
-
-                let posNode = catNode.children.find(c => c.label === item.position);
-
-                if (!posNode) {
-                    posNode = {
-                        id: `pos-${item.category}-${item.position}`,
-                        type: 'position',
-                        label: item.position,
-                        person: item.name,
-                        period: item.period,
-                        children: []
-                    };
-                    catNode.children.push(posNode);
-                } else if (item.name && (!posNode.person || posNode.person === '')) {
-                    posNode.person = item.name;
-                    posNode.period = item.period;
-                }
-            }
-        });
-    });
-
-    return roots;
-}
-
-function drawTree(node, container, svg) {
-    const el = document.createElement('div');
-    el.className = `org-node ${node.type}-node`;
-    el.id = node.id;
-    el.style.left = `${node.x}px`;
-    el.style.top = `${node.y}px`;
-
-    let html = `<div class="node-header">${node.label}</div>`;
-    if (node.type === 'position' && node.person) {
-        html += `
-            <div class="node-body">
-                <div class="node-name">${node.person}</div>
-                <div class="node-period">${node.period || ''}</div>
-            </div>
-        `;
-    }
-    el.innerHTML = html;
-
-    el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        document.querySelectorAll('.org-node').forEach(n => n.classList.remove('selected'));
-        el.classList.add('selected');
-    });
-
-    container.appendChild(el);
-
-    if (node.children) {
-        node.children.forEach(child => {
-            drawTree(child, container, svg);
-            drawConnection(node, child, svg);
-        });
-    }
-}
-
-function drawConnection(parent, child, svg) {
-    const parentX = parent.x + 90;
-    const parentY = parent.y + (parent.type === 'category' ? 40 : 80);
-
-    const childX = child.x + 90;
-    const childY = child.y;
-
-    const midY = (parentY + childY) / 2;
-
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    const d = `M ${parentX} ${parentY} 
-               L ${parentX} ${midY} 
-               L ${childX} ${midY} 
-               L ${childX} ${childY}`;
-
-    path.setAttribute('d', d);
-    path.setAttribute('class', 'connection-line');
-
-    svg.appendChild(path);
 }
