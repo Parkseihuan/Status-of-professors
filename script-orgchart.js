@@ -1,454 +1,250 @@
-// ==================== ORG CHART MODULE ====================
-// Separate file for organizational chart functionality
+// Org Chart Module - Tree Structure (Simple Design)
+console.log('Org chart module loaded');
 
+// Namespace for org chart
 const OrgChartApp = {
     data: null,
-    zoom: 1,
-    zoomStep: 0.1,
-    panning: {
-        isPanning: false,
-        startX: 0,
-        startY: 0,
-        translateX: 0,
-        translateY: 0
-    }
+    selectedPerson: null
 };
 
-// ==================== PARSING FUNCTIONS ====================
-
-// Parse org chart Excel file
-async function parseOrgChartFile(file) {
-    // Ensure readFile is available (it should be from script.js)
-    if (typeof readFile !== 'function') {
-        console.error('readFile function is not defined. Make sure script.js is loaded.');
-        throw new Error('readFile function missing');
-    }
-
-    const buffer = await readFile(file);
-    const workbook = XLSX.read(buffer, { type: 'array' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-    const orgNodes = [];
-    for (let i = 1; i < data.length; i++) {
-        const row = data[i];
-        if (!row || row.length < 3) continue;
-
-        const node = {
-            name: row[0],
-            id: row[1],
-            supervisorId: row[2],
-            englishName: row[3] || ''
-        };
-
-        if (node.name && node.id !== null) {
-            orgNodes.push(node);
-        }
-    }
-    return orgNodes;
-}
-
-// Build tree structure
-function buildOrgHierarchyFromFile(orgNodes) {
-    const nodeMap = new Map();
-    const roots = [];
-
-    orgNodes.forEach(node => {
-        nodeMap.set(node.id, { ...node, children: [], type: 'org-position' });
-    });
-
-    orgNodes.forEach(node => {
-        const currentNode = nodeMap.get(node.id);
-        if (node.supervisorId === null || !nodeMap.has(node.supervisorId)) {
-            roots.push(currentNode);
-        } else {
-            const parent = nodeMap.get(node.supervisorId);
-            if (parent) parent.children.push(currentNode);
-        }
-    });
-
-    return roots;
-}
-
-// Match professor data
-function matchProfessorDataToOrgChart(orgRoots, professorData) {
-    const positionMap = new Map();
-
-    professorData.rows.forEach(row => {
-        ['left', 'right'].forEach(side => {
-            const item = row[side];
-            if (item.position && item.name) {
-                if (!positionMap.has(item.position)) {
-                    positionMap.set(item.position, []);
-                }
-                positionMap.get(item.position).push({
-                    name: item.name,
-                    period: item.period,
-                    category: item.category
-                });
-            }
-        });
-    });
-
-    function matchNode(node) {
-        const matches = positionMap.get(node.name);
-        if (matches && matches.length > 0) {
-            node.professors = matches;
-        }
-        if (node.children) {
-            node.children.forEach(child => matchNode(child));
-        }
-    }
-
-    orgRoots.forEach(root => matchNode(root));
-    return orgRoots;
-}
-
-// ==================== RENDERING FUNCTIONS ====================
-
+// Main render function
 function renderOrgChartWithHierarchy(data) {
-    const canvas = document.getElementById('org-chart-canvas');
-    const svg = document.getElementById('org-connections');
-
-    if (!canvas || !svg) {
-        console.error('Org chart elements not found');
+    const container = document.getElementById('org-chart-canvas');
+    if (!container) {
+        console.error('Org chart container not found');
         return;
     }
 
-    // Clear existing
-    canvas.innerHTML = '';
-    canvas.appendChild(svg); // Keep SVG inside
-    svg.innerHTML = '';
+    // Clear existing content
+    container.innerHTML = '';
 
-    // Build hierarchy
+    // Build hierarchy from data
     let hierarchy;
     if (data.orgChart && data.orgChart.length > 0) {
         hierarchy = data.orgChart;
     } else {
         hierarchy = buildSimpleHierarchy(data);
     }
+
     OrgChartApp.data = hierarchy;
 
-    // Layout settings
-    const LEVEL_HEIGHT = 120;
-    const NODE_WIDTH = 160;
-    const SIBLING_GAP = 30;
+    // Create tree structure
+    const treeContainer = document.createElement('div');
+    treeContainer.className = 'org-tree-container';
 
-    let maxX = 0;
-    let maxY = 0;
-
-    function calculateLayout(node, level, startX) {
-        let currentX = startX;
-        let width = NODE_WIDTH;
-
-        if (node.children && node.children.length > 0) {
-            let childrenWidth = 0;
-            node.children.forEach(child => {
-                const childDims = calculateLayout(child, level + 1, currentX);
-                currentX += childDims.width + SIBLING_GAP;
-                childrenWidth += childDims.width + SIBLING_GAP;
-            });
-            childrenWidth -= SIBLING_GAP;
-
-            node.x = startX + (childrenWidth / 2) - (NODE_WIDTH / 2);
-            width = Math.max(NODE_WIDTH, childrenWidth);
-        } else {
-            node.x = startX;
-        }
-
-        node.y = level * LEVEL_HEIGHT + 50;
-        maxX = Math.max(maxX, node.x + NODE_WIDTH);
-        maxY = Math.max(maxY, node.y + LEVEL_HEIGHT);
-
-        return { width: width, x: node.x };
-    }
-
-    // Position roots
-    let currentRootX = 50;
     hierarchy.forEach(root => {
-        const dims = calculateLayout(root, 0, currentRootX);
-        currentRootX += dims.width + 100;
+        const treeElement = buildTreeElement(root);
+        treeContainer.appendChild(treeElement);
     });
 
-    // Draw
-    hierarchy.forEach(root => {
-        drawOrgTree(root, canvas, svg);
-    });
+    container.appendChild(treeContainer);
 
-    // Fit to screen
-    const container = document.getElementById('org-chart-container');
-    if (container.clientWidth > 0) {
-        const contentWidth = currentRootX;
-        const contentHeight = maxY + 100;
-        const scaleX = container.clientWidth / contentWidth;
-        const scaleY = container.clientHeight / contentHeight;
-        OrgChartApp.zoom = Math.min(scaleX, scaleY, 1) * 0.9;
-
-        const scaledWidth = contentWidth * OrgChartApp.zoom;
-        OrgChartApp.panning.translateX = (container.clientWidth - scaledWidth) / 2;
-        OrgChartApp.panning.translateY = 50;
-
-        applyOrgTransform();
-    }
-
-    initOrgChartPanning();
+    // Add click handlers
+    initOrgChartInteractions();
 }
 
+// Build simple hierarchy from table data
 function buildSimpleHierarchy(data) {
     const roots = [];
     const categoryMap = {};
 
-    function getCategoryNode(catName) {
-        if (!categoryMap[catName]) {
-            const node = {
-                id: `cat-${catName}`,
-                type: 'category',
-                label: catName,
-                name: catName,
-                children: []
-            };
-            categoryMap[catName] = node;
-            roots.push(node);
-        }
-        return categoryMap[catName];
+    if (!data.rows || data.rows.length === 0) {
+        return roots;
     }
 
+    // Process rows to build hierarchy
     data.rows.forEach(row => {
         ['left', 'right'].forEach(side => {
             const item = row[side];
-            if (item.category && item.position) {
-                const catNode = getCategoryNode(item.category);
-                let posNode = catNode.children.find(c => c.label === item.position);
+            if (!item || !item.category) return;
 
+            const category = item.category;
+            const position = item.position;
+            const name = item.name;
+            const period = item.period;
+
+            if (!categoryMap[category]) {
+                const catNode = {
+                    label: category,
+                    type: 'category',
+                    children: []
+                };
+                categoryMap[category] = catNode;
+                roots.push(catNode);
+            }
+
+            const catNode = categoryMap[category];
+
+            if (position) {
+                // Find or create position node
+                let posNode = catNode.children.find(c => c.label === position);
                 if (!posNode) {
                     posNode = {
-                        id: `pos-${item.category}-${item.position}`,
+                        label: position,
                         type: 'position',
-                        label: item.position,
-                        name: item.position,
-                        person: item.name,
-                        period: item.period,
+                        person: name || '',
+                        period: period || '',
                         children: []
                     };
                     catNode.children.push(posNode);
-                } else if (item.name && (!posNode.person || posNode.person === '')) {
-                    posNode.person = item.name;
-                    posNode.period = item.period;
+                } else if (name && (!posNode.person || posNode.person === '')) {
+                    posNode.person = name;
+                    posNode.period = period;
                 }
             }
         });
     });
+
     return roots;
 }
 
-function drawOrgTree(node, container, svg) {
-    const el = document.createElement('div');
-    el.className = `org-node ${node.type || 'position'}-node`;
-    el.id = node.id || `node-${Math.random().toString(36).substr(2, 9)}`;
-    el.style.left = `${node.x}px`;
-    el.style.top = `${node.y}px`;
+// Build tree HTML element
+function buildTreeElement(node, level = 0) {
+    const ul = document.createElement('ul');
+    ul.className = 'tree';
 
-    let html = `<div class="node-header">${node.label || node.name}</div>`;
+    const li = document.createElement('li');
 
-    if (node.professors && node.professors.length > 0) {
-        html += '<div class="node-body">';
-        node.professors.forEach(prof => {
-            html += `<div class="node-name">${prof.name}</div>`;
-            if (prof.period) html += `<div class="node-period">${prof.period}</div>`;
-            el.dataset.personName = prof.name;
-        });
-        html += '</div>';
-    } else if (node.person) {
-        html += `<div class="node-body">
-            <div class="node-name">${node.person}</div>
-            <div class="node-period">${node.period || ''}</div>
-        </div>`;
-        el.dataset.personName = node.person;
+    const nodeSpan = document.createElement('span');
+    nodeSpan.className = `org-node ${node.type || 'position'}-node`;
+
+    if (level === 0) {
+        nodeSpan.classList.add('root');
+    } else if (level === 1) {
+        nodeSpan.classList.add('level1');
+    } else {
+        nodeSpan.classList.add('level2');
     }
 
-    el.innerHTML = html;
+    // Set node content
+    let nodeText = node.label || node.name || '';
+    if (node.person && node.person !== nodeText) {
+        nodeText += ` - ${node.person}`;
+    }
+    nodeSpan.textContent = nodeText;
 
-    // Interactions
-    el.addEventListener('click', (e) => {
-        e.stopPropagation();
+    // Store person name for click handling
+    if (node.person) {
+        nodeSpan.dataset.personName = node.person;
+    }
 
-        // Remove previous selection
-        document.querySelectorAll('.org-node').forEach(n => n.classList.remove('selected'));
-        el.classList.add('selected');
+    li.appendChild(nodeSpan);
 
-        // Show concurrent lines only for this person
-        if (el.dataset.personName) {
-            const personName = el.dataset.personName;
-            const nodes = Array.from(document.querySelectorAll('.org-node')).filter(n => n.dataset.personName === personName);
-
-            if (nodes.length > 1) {
-                highlightConcurrentPositions(personName);
-            } else {
-                // Clear concurrent lines if no concurrent positions
-                document.querySelectorAll('.concurrent-connection').forEach(el => el.remove());
+    // Add children
+    if (node.children && node.children.length > 0) {
+        const childUl = document.createElement('ul');
+        node.children.forEach(child => {
+            const childLi = buildTreeElement(child, level + 1).querySelector('li');
+            if (childLi) {
+                childUl.appendChild(childLi);
             }
+        });
+        li.appendChild(childUl);
+    }
+
+    ul.appendChild(li);
+    return ul;
+}
+
+// Initialize interactions
+function initOrgChartInteractions() {
+    const nodes = document.querySelectorAll('.org-node[data-person-name]');
+
+    nodes.forEach(node => {
+        const personName = node.dataset.personName;
+
+        // Hover tooltip
+        node.addEventListener('mouseenter', (e) => {
+            showTooltip(e, personName);
+        });
+
+        node.addEventListener('mouseleave', () => {
+            hideTooltip();
+        });
+
+        // Click to highlight
+        node.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleHighlight(personName);
+        });
+    });
+
+    // Click outside to clear
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.org-node')) {
+            clearAllHighlights();
         }
     });
+}
 
-    el.addEventListener('mouseenter', (e) => {
-        if (el.dataset.personName) showConcurrentTooltip(e, el.dataset.personName);
-    });
+// Show tooltip
+function showTooltip(event, personName) {
+    const tooltip = document.getElementById('custom-tooltip');
+    if (!tooltip) return;
 
-    el.addEventListener('mouseleave', hideConcurrentTooltip);
-
-    container.appendChild(el);
-
-    if (node.children) {
-        node.children.forEach(child => {
-            drawOrgTree(child, container, svg);
-            drawOrgConnection(node, child, svg);
+    const nodes = document.querySelectorAll(`.org-node[data-person-name="${personName}"]`);
+    if (nodes.length > 1) {
+        const positions = Array.from(nodes).map(n => {
+            // Get position from parent or node text
+            const text = n.textContent;
+            return text.split(' - ')[0];
         });
+
+        tooltip.innerHTML = `<strong>${personName}</strong> (겸직 ${positions.length}개)<br>`;
+        positions.forEach(pos => {
+            tooltip.innerHTML += `• ${pos}<br>`;
+        });
+
+        tooltip.style.display = 'block';
+        tooltip.style.left = (event.pageX + 15) + 'px';
+        tooltip.style.top = (event.pageY + 15) + 'px';
     }
 }
 
-function drawOrgConnection(parent, child, svg) {
-    const parentX = parent.x + 80; // Half of NODE_WIDTH (160)
-    const parentY = parent.y + 50; // Approx height
-    const childX = child.x + 80;
-    const childY = child.y;
-    const midY = (parentY + childY) / 2;
-
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    const d = `M ${parentX} ${parentY} L ${parentX} ${midY} L ${childX} ${midY} L ${childX} ${childY}`;
-    path.setAttribute('d', d);
-    path.setAttribute('class', 'connection-line');
-    svg.appendChild(path);
+// Hide tooltip
+function hideTooltip() {
+    const tooltip = document.getElementById('custom-tooltip');
+    if (tooltip) {
+        tooltip.style.display = 'none';
+    }
 }
 
-// ==================== INTERACTION FUNCTIONS ====================
+// Toggle highlight
+function toggleHighlight(personName) {
+    const nodes = document.querySelectorAll(`.org-node[data-person-name="${personName}"]`);
 
+    if (nodes.length < 2) return; // No concurrent positions
+
+    if (OrgChartApp.selectedPerson === personName) {
+        // Deselect
+        clearAllHighlights();
+    } else {
+        // Clear previous and select new
+        clearAllHighlights();
+        nodes.forEach(node => {
+            node.classList.add('selected');
+        });
+        OrgChartApp.selectedPerson = personName;
+    }
+}
+
+// Clear all highlights
+function clearAllHighlights() {
+    document.querySelectorAll('.org-node.selected').forEach(node => {
+        node.classList.remove('selected');
+    });
+    OrgChartApp.selectedPerson = null;
+}
+
+// Dummy functions for compatibility (not used in tree view)
 function orgZoomIn() {
-    OrgChartApp.zoom += OrgChartApp.zoomStep;
-    applyOrgTransform();
+    console.log('Zoom not applicable in tree view');
 }
 
 function orgZoomOut() {
-    if (OrgChartApp.zoom > 0.1) {
-        OrgChartApp.zoom -= OrgChartApp.zoomStep;
-        applyOrgTransform();
-    }
+    console.log('Zoom not applicable in tree view');
 }
 
 function orgResetZoom() {
-    if (OrgChartApp.data) renderOrgChartWithHierarchy({ orgChart: OrgChartApp.data, rows: window.processedData.rows });
+    console.log('Zoom not applicable in tree view');
 }
-
-function applyOrgTransform() {
-    const canvas = document.getElementById('org-chart-canvas');
-    if (canvas) {
-        canvas.style.transform = `translate(${OrgChartApp.panning.translateX}px, ${OrgChartApp.panning.translateY}px) scale(${OrgChartApp.zoom})`;
-    }
-}
-
-function initOrgChartPanning() {
-    const container = document.getElementById('org-chart-container');
-    if (!container) return;
-
-    const newContainer = container.cloneNode(true);
-    container.parentNode.replaceChild(newContainer, container);
-    const freshContainer = document.getElementById('org-chart-container');
-
-    freshContainer.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.org-node')) return;
-        OrgChartApp.panning.isPanning = true;
-        OrgChartApp.panning.startX = e.clientX - OrgChartApp.panning.translateX;
-        OrgChartApp.panning.startY = e.clientY - OrgChartApp.panning.translateY;
-        freshContainer.style.cursor = 'grabbing';
-    });
-
-    freshContainer.addEventListener('mousemove', (e) => {
-        if (!OrgChartApp.panning.isPanning) return;
-        e.preventDefault();
-        OrgChartApp.panning.translateX = e.clientX - OrgChartApp.panning.startX;
-        OrgChartApp.panning.translateY = e.clientY - OrgChartApp.panning.startY;
-        applyOrgTransform();
-    });
-
-    freshContainer.addEventListener('mouseup', () => {
-        OrgChartApp.panning.isPanning = false;
-        freshContainer.style.cursor = 'grab';
-    });
-
-    freshContainer.addEventListener('mouseleave', () => {
-        OrgChartApp.panning.isPanning = false;
-        freshContainer.style.cursor = 'grab';
-    });
-
-    freshContainer.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const delta = -e.deltaY * 0.001;
-        const newZoom = Math.max(0.1, OrgChartApp.zoom + delta);
-
-        const rect = freshContainer.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-
-        const worldX = (mouseX - OrgChartApp.panning.translateX) / OrgChartApp.zoom;
-        const worldY = (mouseY - OrgChartApp.panning.translateY) / OrgChartApp.zoom;
-
-        OrgChartApp.zoom = newZoom;
-        OrgChartApp.panning.translateX = mouseX - worldX * OrgChartApp.zoom;
-        OrgChartApp.panning.translateY = mouseY - worldY * OrgChartApp.zoom;
-
-        applyOrgTransform();
-    });
-}
-
-function highlightConcurrentPositions(personName) {
-    document.querySelectorAll('.concurrent-connection').forEach(el => el.remove());
-    const nodes = Array.from(document.querySelectorAll('.org-node')).filter(n => n.dataset.personName === personName);
-    if (nodes.length < 2) return;
-
-    const svg = document.getElementById('org-connections');
-    nodes.sort((a, b) => parseFloat(a.style.top) - parseFloat(b.style.top));
-
-    for (let i = 0; i < nodes.length - 1; i++) {
-        const start = nodes[i];
-        const end = nodes[i + 1];
-        const startX = parseFloat(start.style.left) + 80;
-        const startY = parseFloat(start.style.top) + 50;
-        const endX = parseFloat(end.style.left) + 80;
-        const endY = parseFloat(end.style.top);
-
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', `M ${startX} ${startY} L ${endX} ${endY}`);
-        path.setAttribute('class', 'connection-line concurrent-connection');
-        path.setAttribute('stroke-dasharray', '5,5');
-        path.setAttribute('stroke', '#fbbf24');
-        path.setAttribute('stroke-width', '2');
-        svg.appendChild(path);
-    }
-}
-
-function showConcurrentTooltip(event, personName) {
-    const nodes = Array.from(document.querySelectorAll('.org-node')).filter(n => n.dataset.personName === personName);
-    if (nodes.length < 2) return;
-
-    const tooltip = document.getElementById('custom-tooltip');
-    const positions = nodes.map(n => n.querySelector('.node-header').textContent).filter(p => p);
-
-    tooltip.innerHTML = `<strong>${personName}</strong><br>겸직: ${positions.join(', ')}`;
-    tooltip.style.display = 'block';
-    tooltip.style.left = (event.pageX + 10) + 'px';
-    tooltip.style.top = (event.pageY + 10) + 'px';
-}
-
-function hideConcurrentTooltip() {
-    const tooltip = document.getElementById('custom-tooltip');
-    if (tooltip) tooltip.style.display = 'none';
-}
-
-// Click outside to hide concurrent connections
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.org-node')) {
-        document.querySelectorAll('.concurrent-connection').forEach(el => el.remove());
-        document.querySelectorAll('.org-node').forEach(n => n.classList.remove('selected'));
-    }
-});
-
-console.log('Org chart module loaded');

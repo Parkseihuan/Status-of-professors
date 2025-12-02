@@ -539,6 +539,7 @@ function renderTable(data) {
 function initInteractions() {
     const tooltip = document.getElementById('custom-tooltip');
     const nameCells = document.querySelectorAll('.col-name[data-name]');
+    let currentSelectedName = null;
 
     nameCells.forEach(cell => {
         const name = cell.getAttribute('data-name');
@@ -547,15 +548,12 @@ function initInteractions() {
         cell.addEventListener('mouseenter', (e) => {
             const positions = professorPositions[name];
 
-            const sameNameCells = document.querySelectorAll(`.col-name[data-name="${name}"]`);
-            sameNameCells.forEach(el => el.classList.add('highlight-concurrent'));
-
             if (positions && positions.length > 1) {
                 tooltip.style.display = 'block';
                 tooltip.style.left = (e.pageX + 15) + 'px';
                 tooltip.style.top = (e.pageY + 15) + 'px';
 
-                let html = `<span class="tooltip-title">${name} (총 ${positions.length}개)</span>`;
+                let html = `<strong>${name}</strong> (겸직 ${positions.length}개)<br>`;
                 positions.forEach(pos => {
                     html += `• ${pos}<br>`;
                 });
@@ -571,41 +569,40 @@ function initInteractions() {
         });
 
         cell.addEventListener('mouseleave', () => {
-            const sameNameCells = document.querySelectorAll(`.col-name[data-name="${name}"]`);
-            sameNameCells.forEach(el => el.classList.remove('highlight-concurrent'));
             tooltip.style.display = 'none';
         });
 
-        // Click for arrows (NEW)
+        // Click to highlight all positions of this person
         cell.addEventListener('click', (e) => {
             e.stopPropagation();
             const positions = professorPositions[name];
 
             if (positions && positions.length > 1) {
-                // Toggle arrows for this person
-                const arrowLayer = document.getElementById('arrow-layer');
-                const currentPerson = arrowLayer.getAttribute('data-current-person');
+                // Clear previous highlighting
+                document.querySelectorAll('.concurrent-highlight').forEach(el => {
+                    el.classList.remove('concurrent-highlight');
+                });
 
-                if (currentPerson === name) {
-                    // Hide arrows if clicking same person
-                    arrowLayer.style.display = 'none';
-                    arrowLayer.setAttribute('data-current-person', '');
+                if (currentSelectedName === name) {
+                    // Deselect if clicking same person
+                    currentSelectedName = null;
                 } else {
-                    // Show arrows for this person
-                    arrowLayer.style.display = 'block';
-                    arrowLayer.setAttribute('data-current-person', name);
-                    drawArrows(name);
+                    // Highlight all cells with this person's name
+                    const sameNameCells = document.querySelectorAll(`.col-name[data-name="${name}"]`);
+                    sameNameCells.forEach(el => el.classList.add('concurrent-highlight'));
+                    currentSelectedName = name;
                 }
             }
         });
     });
 
-    // Click outside to hide arrows
+    // Click outside to clear highlighting
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.col-name[data-name]')) {
-            const arrowLayer = document.getElementById('arrow-layer');
-            arrowLayer.style.display = 'none';
-            arrowLayer.setAttribute('data-current-person', '');
+            document.querySelectorAll('.concurrent-highlight').forEach(el => {
+                el.classList.remove('concurrent-highlight');
+            });
+            currentSelectedName = null;
         }
     });
 }
@@ -731,12 +728,14 @@ function toggleView(checkbox) {
 function switchView(viewName) {
     const tableContainer = document.getElementById('report-section');
     const orgChartSection = document.getElementById('org-chart-section');
-    const checkbox = document.getElementById('view-toggle-checkbox');
+    const btnTable = document.getElementById('btn-table');
+    const btnOrgChart = document.getElementById('btn-orgchart');
 
     if (viewName === 'orgchart') {
         if (tableContainer) tableContainer.style.display = 'none';
         if (orgChartSection) orgChartSection.style.display = 'block';
-        if (checkbox) checkbox.checked = true;
+        if (btnTable) btnTable.classList.remove('active');
+        if (btnOrgChart) btnOrgChart.classList.add('active');
 
         // Render org chart if data is available
         if (typeof renderOrgChartWithHierarchy === 'function' && window.processedData) {
@@ -747,6 +746,7 @@ function switchView(viewName) {
     } else {
         if (tableContainer) tableContainer.style.display = 'block';
         if (orgChartSection) orgChartSection.style.display = 'none';
-        if (checkbox) checkbox.checked = false;
+        if (btnTable) btnTable.classList.add('active');
+        if (btnOrgChart) btnOrgChart.classList.remove('active');
     }
 }
