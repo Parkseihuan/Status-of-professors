@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>용인대학교 기구표</title>
+  <style>
+    /* 기본 스타일 */
+    body {
+      font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f7fb;
+      color: #222;
+    }
+
+    header {
+      background: #003f88;
+      color: white;
+      padding: 18px 32px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    header p {
+      margin: 4px 0 0 0;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    main {
+      padding: 20px 24px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      margin-top: 32px;
+      font-size: 20px;
+      border-left: 4px solid #003f88;
+      padding-left: 10px;
+      color: #003f88;
+    }
+
+    .section-desc {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+    /* 트리 기본 스타일 */
+    .tree {
+      margin: 10px 0 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .tree ul {
+      margin: 0;
+      padding-left: 22px;
+      list-style: none;
+      position: relative;
+    }
+
+    /* 세로 선 */
+    .tree ul::before {
+      content: "";
+      border-left: 1px solid #ccd3e4;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 10px;
+    }
+
+    .tree li {
+      margin: 0;
+      padding: 4px 0 4px 18px;
+      position: relative;
+    }
+
+    /* 가로 선 */
+    .tree li::before {
+      content: "";
+      border-top: 1px solid #ccd3e4;
+      position: absolute;
+      top: 14px;
+      left: 0;
+      width: 12px;
+    }
+
+    /* 마지막 요소의 세로선 끊기 */
+    .tree li:last-child::after {
+      content: "";
+      position: absolute;
+      left: 10px;
+      top: 15px;
+      bottom: -4px;
+      border-left: 1px solid #f5f7fb; /* 배경색과 같게 해서 끊긴 것처럼 보이게 */
+    }
+
+    .node {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+      background: #ffffff;
+      border: 1px solid #dde3f0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      white-space: nowrap;
+    }
+
+    .node.root {
+      font-weight: 700;
+      background: #003f88;
+      color: white;
+      border-color: #003f88;
+    }
+
+    .node.level1 {
+      font-weight: 600;
+      background: #e6f0ff;
+      border-color: #b9c9f1;
+    }
+
+    .node.level2 {
+      background: #f8f9ff;
+    }
+
+    .node.small {
+      font-size: 12px;
+      padding: 3px 7px;
+    }
+
+    /* 상단 안내 박스 */
+    .info-box {
+      background: #ffffff;
+      border-radius: 6px;
+      padding: 12px 14px;
+      border: 1px solid #dde3f0;
+      font-size: 12px;
+      color: #555;
+      margin-top: 14px;
+    }
+
+    .info-box strong {
+      color: #003f88;
+    }
+
+    /* 구분 카드 */
+    .card {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 14px 16px 16px;
+      border: 1px solid #dde3f0;
+      margin-top: 18px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 0 0 8px;
+      color: #003f88;
+    }
+
+    .card-sub {
+      font-size: 12px;
+      margin: 0 0 10px;
+      color: #666;
+    }
+
+    footer {
+      text-align: center;
+      padding: 16px 8px 24px;
+      font-size: 11px;
+      color: #777;
+    }
+
+    /* 반응형 */
+    @media (max-width: 768px) {
+      main {
+        padding: 16px 12px 32px;
+      }
+      header {
+        padding: 14px 16px;
+      }
+      header h1 {
+        font-size: 20px;
+      }
+      .node {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>용인대학교 기구표</h1>
+    <p>총장 및 부총장 직속 기구, 대학·대학원, 부속·부설기관 조직 구조</p>
+  </header>
+
+  <main>
+    <section class="info-box">
+      <strong>안내</strong><br />
+      이 페이지는 용인대학교 조직(기구) 구조를 트리 형태로 정리한 것입니다.<br />
+      각 항목은 상위–하위 관계에 따라 들여쓰기와 선(Line)으로 표시되어 있습니다.
+    </section>
+
+    <!-- 1. 최상위 -->
+    <h2>1. 최상위 조직</h2>
+    <p class="section-desc">총장을 정점으로 하는 직속 기구와 부총장 체계입니다.</p>
+
+    <ul class="tree">
+      <li>
+        <span class="node root">총장</span>
+        <ul>
+          <li>
+            <span class="node level1">총장 직속 기구</span>
+            <ul>
+              <li>
+                <span class="node level2">비서실</span>
+                <ul>
+                  <li><span class="node small">비서과</span></li>
+                </ul>
+              </li>
+              <li><span class="node level2">감사실</span></li>
+              <li><span class="node level2">혁신사업추진단</span></li>
+              <li><span class="node level2">RISE사업단</span></li>
+              <li>
+                <span class="node level2">부총장</span>
+                <ul>
+                  <li><span class="node small">대학본부</span></li>
+                  <li><span class="node small">기관생명윤리위원회</span></li>
+                  <li><span class="node small">대학</span></li>
+                  <li><span class="node small">대학원</span></li>
+                  <li><span class="node small">부속기관</span></li>
+                  <li><span class="node small">부설기관</span></li>
+                </ul>
+              </li>
+              <li><span class="node level2">특임부총장</span></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <!-- 2. 대학본부 -->
+    <h2>2. 대학본부 조직</h2>
+    <p class="section-desc">부총장 산하 대학본부 및 각 처·실·센터의 세부 구조입니다.</p>
+
+    <div class="card">
+      <p class="card-title">2-1. 대학본부 상세</p>
+      <ul class="tree">
+        <li>
+          <span class="node level1">부총장</span>
+          <ul>
+            <li>
+              <span class="node level1">대학본부</span>
+              <ul>
+                <li>
+                  <span class="node level2">기획처</span>
+                  <ul>
+                    <li><span class="node small">기획예산과</span></li>
+                    <li>
+                      <span class="node small">대외협력실</span>
+                      <ul>
+                        <li><span class="node small">대외협력과</span></li>
+                      </ul>
+                    </li>
+                    <li><span class="node small">평가성과분석센터</span></li>
+                  </ul>
+                </li>
+                <li>
+                  <span class="node level2">교무처</span>
+                  <ul>
+                    <li><span class="node small">교무지원과</span></li>
+                    <li>
+                      <span class="node small">학사관리과</span>
+                      <ul>
+                        <li><span class="node small">교직과</span></li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <span class="node level2">교육혁신처</span>
+                  <ul>
+                    <li><span class="node small">교수학습지원센터</span></li>
+                    <li><span class="node small">원격교육지원센터</span></li>
+                    <li><span class="node small">취창업지원센터</span></li>
+                    <li><span class="node small">학생생활상담센터</span></li>
+                  </ul>
+                </li>
+                <li>
+                  <span class="node level2">학생처</span>
+                  <ul>
+                    <li><span class="node small">학생지원과</span></li>
+                    <li><span class="node small">장학과</span></li>
+                    <li><span class="node small">장애학생지원센터</span></li>
+                  </ul>
+                </li>
+                <li>
+                  <span class="node level2">사무처</span>
+                  <ul>
+                    <li><span class="node small">총무지원과</span></li>
+                    <li><span class="node small">회계과</span></li>
+                    <li><span class="node small">안전관리과</span></li>
+                    <li><span class="node small">비상계획과</span></li>
+                  </ul>
+                </li>
+                <li>
+                  <span class="node level2">국제교류교육원</span>
+                  <ul>
+                    <li><span class="node small">국제교류교육과</span></li>
+                    <li><span class="node small">한국어학당</span></li>
+                  </ul>
+                </li>
+                <li>
+                  <span class="node level2">입학관리실</span>
+                  <ul>
+                    <li><span class="node small">입학관리과</span></li>
+                  </ul>
+                </li>
+                <li>
+                  <span class="node level2">기관생명윤리위원회</span>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 3. 대학(학부) -->
+    <h2>3. 대학(학부) 조직</h2>
+    <p class="section-desc">무도대학, 체육과학대학, 문화예술대학, 인문사회융합대학, AI바이오융합대학, 용오름대학으로 구성됩니다.</p>
+
+    <div class="card">
+      <p class="card-title">3-1. 학부 조직</p>
+      <ul class="tree">
+        <li>
+          <span class="node level1">대학</span>
+          <ul>
+            <li>
+              <span class="node level2">무도대학</span>
+              <ul>
+                <li><span class="node small">유도학과</span></li>
+                <li><span class="node small">유도경기지도학과</span></li>
+                <li><span class="node small">무도학과</span></li>
+                <li><span class="node small">태권도학과</span></li>
+                <li><span class="node small">경호학과</span></li>
+                <li><span class="node small">무도계열전공학부</span></li>
+                <li><span class="node small">무도스포츠산업학과(계약학과)</span></li>
+              </ul>
+            </li>
+            <li>
+              <span class="node level2">체육과학대학</span>
+              <ul>
+                <li><span class="node small">스포츠레저학과</span></li>
+                <li><span class="node small">체육학과</span></li>
+                <li><span class="node small">골프학부</span></li>
+                <li><span class="node small">특수체육교육과</span></li>
+                <li><span class="node small">체육계열전공학부</span></li>
+                <li><span class="node small">스포츠재활학과(계약학과)</span></li>
+              </ul>
+            </li>
+            <li>
+              <span class="node level2">문화예술대학</span>
+              <ul>
+                <li><span class="node small">무용과</span></li>
+                <li><span class="node small">미디어디자인학과</span></li>
+                <li><span class="node small">회화학과</span></li>
+                <li><span class="node small">국악과</span></li>
+                <li><span class="node small">연극학과</span></li>
+                <li><span class="node small">영화영상학과</span></li>
+                <li><span class="node small">실용음악과</span></li>
+                <li><span class="node small">문화콘텐츠학과</span></li>
+                <li><span class="node small">문화유산학과</span></li>
+                <li><span class="node small">문화예술계열전공학부</span></li>
+              </ul>
+            </li>
+            <li>
+              <span class="node level2">인문사회융합대학</span>
+              <ul>
+                <li><span class="node small">경영학과</span></li>
+                <li><span class="node small">관광경영학과</span></li>
+                <li><span class="node small">경찰행정학과</span></li>
+                <li><span class="node small">중국학과</span></li>
+                <li><span class="node small">사회복지학과</span></li>
+                <li><span class="node small">인문사회계열전공학부</span></li>
+              </ul>
+            </li>
+            <li>
+              <span class="node level2">AI바이오융합대학</span>
+              <ul>
+                <li><span class="node small">AI융합학부</span></li>
+                <li><span class="node small">보건환경안전학과</span></li>
+                <li><span class="node small">바이오생명공학과</span></li>
+                <li><span class="node small">물리치료학과</span></li>
+                <li><span class="node small">식품조리학부</span></li>
+                <li><span class="node small">자연계열전공학부</span></li>
+              </ul>
+            </li>
+            <li>
+              <span class="node level2">용오름대학</span>
+              <ul>
+                <li><span class="node small">무전공학부</span></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 4. 대학원 -->
+    <h2>4. 대학원 조직</h2>
+    <p class="section-desc">일반대학원, 스포츠과학·경영·교육·문화예술·재활복지·태권도대학원으로 구성됩니다.</p>
+
+    <div class="card">
+      <p class="card-title">4-1. 대학원 상세</p>
+      <ul class="tree">
+        <li>
+          <span class="node level1">대학원</span>
+          <ul>
+            <li>
+              <span class="node level2">일반대학원</span>
+              <ul>
+                <li>
+                  <span class="node small">박사과정</span>
+                  <ul>
+                    <li><span class="node small">체육학과</span></li>
+                    <li><span class="node small">경영학과</span></li>
+                    <li><span class="node small">경호학과</span></li>
+                    <li><span class="node small">물리치료학과</span></li>
+                    <li><span class="node small">무도학과</span></li>
+                    <li><span class="node small">보건복지학과</span></li>
+                    <li><span class="node small">식품영양학 전공</span></li>
+                    <li><span class="node small">사회복지학 전공</span></li>
+                    <li><span class="node small">예술치료학과</span></li>
+                    <li><span class="node small">예술치료학 전공</span></li>
+                    <li><span class="node small">문화유산보존학과</span></li>
+                    <li><span class="node small">경찰보안정보학과</span></li>
+                    <li><span class="node small">경찰학·범죄학 전공</span></li>
+                    <li><span class="node small">보안정보학 전공</span></li>
+                  </ul>
+                </li>
+                <li>
+                  <span class="node small">석사과정</span>
+                  <ul>
+                    <li><span class="node small">체육학과</span></li>
+                    <li><span class="node small">환경보건학과</span></li>
+                    <li><span class="node small">식품영양학과</span></li>
+                    <li><span class="node small">경호학과</span></li>
+                    <li><span class="node small">생명과학과</span></li>
+                    <li><span class="node small">무도학과</span></li>
+                    <li><span class="node small">문화유산보존학과</span></li>
+                    <li><span class="node small">고고학과</span></li>
+                    <li><span class="node small">AI소프트웨어학과</span></li>
+                    <li><span class="node small">경찰보안정보학과</span></li>
+                    <li><span class="node small">경찰학·범죄학 전공</span></li>
+                    <li><span class="node small">보안정보학 전공</span></li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+
+            <li>
+              <span class="node level2">스포츠과학대학원</span>
+              <ul>
+                <li>
+                  <span class="node small">체육과학과</span>
+                  <ul><li><span class="node small">체육과학 전공</span></li></ul>
+                </li>
+                <li>
+                  <span class="node small">스포츠레저학과</span>
+                  <ul><li><span class="node small">스포츠레저 전공</span></li></ul>
+                </li>
+                <li>
+                  <span class="node small">골프학과</span>
+                  <ul><li><span class="node small">골프 전공</span></li></ul>
+                </li>
+                <li>
+                  <span class="node small">발달재활·특수체육학과</span>
+                  <ul><li><span class="node small">발달재활·특수체육 전공</span></li></ul>
+                </li>
+              </ul>
+            </li>
+
+            <li>
+              <span class="node level2">경영대학원</span>
+              <ul>
+                <li>
+                  <span class="node small">경영학과</span>
+                  <ul><li><span class="node small">경영학 전공</span></li></ul>
+                </li>
+                <li>
+                  <span class="node small">뷰티비즈니스학과</span>
+                  <ul><li><span class="node small">미용산업경영 전공</span></li></ul>
+                </li>
+              </ul>
+            </li>
+
+            <li>
+              <span class="node level2">교육대학원</span>
+              <ul>
+                <li>
+                  <span class="node small">교육학과</span>
+                  <ul>
+                    <li><span class="node small">체육교육 전공</span></li>
+                    <li><span class="node small">특수교육 전공</span></li>
+                    <li><span class="node small">국악교육 전공</span></li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+
+            <li>
+              <span class="node level2">문화예술대학원</span>
+              <ul>
+                <li>
+                  <span class="node small">회화학과</span>
+                  <ul><li><span class="node small">회화 전공</span></li></ul>
+                </li>
+                <li>
+                  <span class="node small">국악과</span>
+                  <ul><li><span class="node small">국악 전공</span></li></ul>
+                </li>
+                <li>
+                  <span class="node small">무용학과</span>
+                  <ul><li><span class="node small">무용학 전공</span></li></ul>
+                </li>
+                <li>
+                  <span class="node small">연극치료학과</span>
+                  <ul><li><span class="node small">연극치료학 전공</span></li></ul>
+                </li>
+                <li>
+                  <span class="node small">거리예술공연학과</span>
+                  <ul><li><span class="node small">거리예술공연 전공</span></li></ul>
+                </li>
+                <li>
+                  <span class="node small">문화콘텐츠학과</span>
+                  <ul><li><span class="node small">문화콘텐츠학 전공</span></li></ul>
+                </li>
+              </ul>
+            </li>
+
+            <li>
+              <span class="node level2">재활복지대학원</span>
+              <ul>
+                <li>
+                  <span class="node small">물리치료학과</span>
+                  <ul><li><span class="node small">물리치료 전공</span></li></ul>
+                </li>
+                <li>
+                  <span class="node small">언어치료학과</span>
+                  <ul><li><span class="node small">언어치료 전공</span></li></ul>
+                </li>
+                <li>
+                  <span class="node small">사회복지학과</span>
+                  <ul><li><span class="node small">사회복지 전공</span></li></ul>
+                </li>
+              </ul>
+            </li>
+
+            <li>
+              <span class="node level2">태권도대학원</span>
+              <ul>
+                <li><span class="node small">태권도학과</span></li>
+                <li><span class="node small">태권도 전공</span></li>
+              </ul>
+            </li>
+
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 5. 부속기관 -->
+    <h2>5. 부속기관 조직</h2>
+    <p class="section-desc">도서관, 생활관, 산학협력단 등 대학 운영을 지원하는 부속기관입니다.</p>
+
+    <div class="card">
+      <p class="card-title">5-1. 부속기관 상세</p>
+      <ul class="tree">
+        <li>
+          <span class="node level1">부속기관</span>
+          <ul>
+            <li>
+              <span class="node level2">중앙도서관</span>
+              <ul>
+                <li><span class="node small">학술정보지원과</span></li>
+                <li><span class="node small">학술정보열람과</span></li>
+              </ul>
+            </li>
+            <li>
+              <span class="node level2">생활관</span>
+              <ul>
+                <li><span class="node small">운영과</span></li>
+              </ul>
+            </li>
+            <li>
+              <span class="node level2">체육지원실</span>
+              <ul>
+                <li><span class="node small">운영과</span></li>
+              </ul>
+            </li>
+            <li><span class="node level2">보건지원과</span></li>
+            <li>
+              <span class="node level2">신문방송국</span>
+              <ul>
+                <li><span class="node small">대학신문사</span></li>
+                <li><span class="node small">교육방송국</span></li>
+              </ul>
+            </li>
+            <li><span class="node level2">박물관</span></li>
+            <li>
+              <span class="node level2">산학협력단</span>
+              <ul>
+                <li><span class="node small">산학협력과</span></li>
+                <li><span class="node small">아시아문화연구소</span></li>
+              </ul>
+            </li>
+            <li><span class="node level2">스포츠·웰니스연구센터</span></li>
+            <li>
+              <span class="node level2">정보관리실</span>
+              <ul>
+                <li><span class="node small">정보관리과</span></li>
+              </ul>
+            </li>
+            <li><span class="node level2">예비군대대</span></li>
+            <li>
+              <span class="node level2">글로벌사회공헌원</span>
+              <ul>
+                <li><span class="node small">시니어서비스센터</span></li>
+                <li><span class="node small">ESG센터</span></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 6. 부설기관 -->
+    <h2>6. 부설기관 조직</h2>
+    <p class="section-desc">각종 연수원 및 연구소 등 특수 목적을 가진 부설기관입니다.</p>
+
+    <div class="card">
+      <p class="card-title">6-1. 부설기관 상세</p>
+      <ul class="tree">
+        <li>
+          <span class="node level1">부설기관</span>
+          <ul>
+            <li><span class="node level2">생활체육지도자연수원</span></li>
+            <li><span class="node level2">미래인재교육원</span></li>
+            <li><span class="node level2">교육연수원</span></li>
+            <li><span class="node level2">국외여행인솔자연수원</span></li>
+            <li><span class="node level2">장애인스포츠지도자연수원</span></li>
+            <li><span class="node level2">학생군사교육단</span></li>
+            <li><span class="node level2">무도연구소</span></li>
+            <li><span class="node level2">체육과학연구소</span></li>
+            <li><span class="node level2">특수체육연구소</span></li>
+            <li><span class="node level2">자연과학연구소</span></li>
+            <li><span class="node level2">인문사회과학연구소</span></li>
+            <li><span class="node level2">문화예술연구소</span></li>
+            <li><span class="node level2">인권센터</span></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </main>
+
+  <footer>
+    용인대학교 조직(기구) 구조 예시 웹페이지 · 필요에 따라 최신 조직도와 차이가 있을 수 있습니다.
+  </footer>
+</body>
+</html>
