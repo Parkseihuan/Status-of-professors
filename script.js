@@ -466,7 +466,6 @@ function renderTable(data) {
             leftNameCell.setAttribute('data-name', name);
 
             if (nameCount[name] > 1) {
-                leftNameCell.classList.add('concurrent-highlight');
                 leftNameCell.innerHTML = `${name} <span class="concurrent-badge">⭐${nameCount[name]}</span>`;
             } else {
                 leftNameCell.textContent = name;
@@ -512,7 +511,6 @@ function renderTable(data) {
             rightNameCell.setAttribute('data-name', name);
 
             if (nameCount[name] > 1) {
-                rightNameCell.classList.add('concurrent-highlight');
                 rightNameCell.innerHTML = `${name} <span class="concurrent-badge">⭐${nameCount[name]}</span>`;
             } else {
                 rightNameCell.textContent = name;
