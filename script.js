@@ -194,84 +194,121 @@ function readFile(file) {
     });
 }
 
+// --- Core Business Logic ---
+
+function processData(criteriaRows, rawRows, filename) {
+    console.log('processData called');
+    console.log('criteriaRows:', criteriaRows);
+    console.log('rawRows:', rawRows);
+    console.log('filename:', filename);
+
+    // 1. Extract Date from Filename
+    let dateStr = "2025.10.01."; // Default
+    const dateMatch = filename.match(/(\d{8})/);
+    if (dateMatch) {
+        const d = dateMatch[1];
+        dateStr = `${d.substring(0, 4)}.${d.substring(4, 6)}.${d.substring(6, 8)}.`;
+    }
+
+    // 2. Process Criteria
+    const criteria = [];
+    for (let i = 1; i < criteriaRows.length; i++) {
+        const row = criteriaRows[i];
+        if (!row || row.length < 5) continue;
+
+        if (row[1] || row[4]) {
+            criteria.push({
+                category: row[1] || '',
+                position: row[4] || '',
+                original_index: i
+            });
+        }
+    }
+
+    console.log('criteria array:', criteria);
+
+    // Fill down category
+    let currentCategory = '';
+    criteria.forEach(item => {
+        if (item.category) currentCategory = item.category;
         else item.category = currentCategory;
     });
 
-// 3. Process Raw Data
-let headerRowIndex = -1;
-for (let i = 0; i < Math.min(10, rawRows.length); i++) {
-    if (rawRows[i] && rawRows[i].includes('성명')) {
-        headerRowIndex = i;
-        break;
+    // 3. Process Raw Data
+    let headerRowIndex = -1;
+    for (let i = 0; i < Math.min(10, rawRows.length); i++) {
+        if (rawRows[i] && rawRows[i].includes('성명')) {
+            headerRowIndex = i;
+            break;
+        }
     }
-}
 
-if (headerRowIndex === -1) throw new Error("데이터 파일에서 '성명' 컬럼을 찾을 수 없습니다.");
+    if (headerRowIndex === -1) throw new Error("데이터 파일에서 '성명' 컬럼을 찾을 수 없습니다.");
 
-const headers = rawRows[headerRowIndex];
-const nameIdx = headers.indexOf('성명');
-const posIdx = headers.indexOf('발령직위');
-const startIdx = headers.indexOf('발령시작일');
-const endIdx = headers.indexOf('발령종료일');
-const stateIdx = headers.indexOf('발령상태');
+    const headers = rawRows[headerRowIndex];
+    const nameIdx = headers.indexOf('성명');
+    const posIdx = headers.indexOf('발령직위');
+    const startIdx = headers.indexOf('발령시작일');
+    const endIdx = headers.indexOf('발령종료일');
+    const stateIdx = headers.indexOf('발령상태');
 
-const activePositions = [];
+    const activePositions = [];
 
-for (let i = headerRowIndex + 1; i < rawRows.length; i++) {
-    const row = rawRows[i];
-    if (!row) continue;
+    for (let i = headerRowIndex + 1; i < rawRows.length; i++) {
+        const row = rawRows[i];
+        if (!row) continue;
 
-    const name = row[nameIdx];
-    const position = row[posIdx];
-    const state = stateIdx !== -1 ? row[stateIdx] : '재직';
+        const name = row[nameIdx];
+        const position = row[posIdx];
+        const state = stateIdx !== -1 ? row[stateIdx] : '재직';
 
-    if (!name || !position) continue;
-    if (state && !state.includes('재직') && !state.includes('유지')) continue;
+        if (!name || !position) continue;
+        if (state && !state.includes('재직') && !state.includes('유지')) continue;
 
-    activePositions.push({
-        name: name,
-        position: position.trim(),
-        period: `${formatDate(row[startIdx])} ~ ${formatDate(row[endIdx])}`
+        activePositions.push({
+            name: name,
+            position: position.trim(),
+            period: `${formatDate(row[startIdx])} ~ ${formatDate(row[endIdx])}`
+        });
+    }
+
+    // 4. Match Criteria
+    const finalRows = [];
+
+    criteria.forEach(crit => {
+        const match = findBestMatch(crit.position, activePositions);
+
+        finalRows.push({
+            category: crit.category,
+            position: crit.position,
+            name: match ? match.name : '',
+            period: match ? match.period : ''
+        });
     });
-}
 
-// 4. Match Criteria
-const finalRows = [];
+    // 5. Split into Left/Right
+    const midPoint = Math.ceil(finalRows.length / 2);
+    const leftRows = finalRows.slice(0, midPoint);
+    const rightRows = finalRows.slice(midPoint);
 
-criteria.forEach(crit => {
-    const match = findBestMatch(crit.position, activePositions);
+    while (rightRows.length < leftRows.length) {
+        rightRows.push({ category: '', position: '', name: '', period: '' });
+    }
 
-    finalRows.push({
-        category: crit.category,
-        position: crit.position,
-        name: match ? match.name : '',
-        period: match ? match.period : ''
-    });
-});
+    const combinedRows = leftRows.map((left, i) => ({
+        left: left,
+        right: rightRows[i]
+    }));
 
-// 5. Split into Left/Right
-const midPoint = Math.ceil(finalRows.length / 2);
-const leftRows = finalRows.slice(0, midPoint);
-const rightRows = finalRows.slice(midPoint);
-
-while (rightRows.length < leftRows.length) {
-    rightRows.push({ category: '', position: '', name: '', period: '' });
-}
-
-const combinedRows = leftRows.map((left, i) => ({
-    left: left,
-    right: rightRows[i]
-}));
-
-return {
-    title: `교 원 보 직 자 현 황 (${dateStr})`,
-    date: `(${dateStr} 현재)`,
-    headers: {
-        left: ['구분', '보 직 명', '성 명', '기 간'],
-        right: ['구분', '보 직 명', '성 명', '기 간']
-    },
-    rows: combinedRows
-};
+    return {
+        title: `교 원 보 직 자 현 황 (${dateStr})`,
+        date: `(${dateStr} 현재)`,
+        headers: {
+            left: ['구분', '보 직 명', '성 명', '기 간'],
+            right: ['구분', '보 직 명', '성 명', '기 간']
+        },
+        rows: combinedRows
+    };
 }
 
 function formatDate(excelDate) {
