@@ -772,12 +772,14 @@ function switchView(viewName) {
     const orgChartSection = document.getElementById('org-chart-section');
     const btnTable = document.getElementById('btn-table');
     const btnOrgChart = document.getElementById('btn-orgchart');
+    const controls = document.querySelector('.controls');
 
     if (viewName === 'orgchart') {
         if (tableContainer) tableContainer.style.display = 'none';
         if (orgChartSection) orgChartSection.style.display = 'block';
         if (btnTable) btnTable.classList.remove('active');
         if (btnOrgChart) btnOrgChart.classList.add('active');
+        if (controls) controls.classList.add('orgchart-mode');
 
         // Render org chart if data is available
         if (typeof renderOrgChartWithHierarchy === 'function' && window.processedData) {
@@ -790,5 +792,6 @@ function switchView(viewName) {
         if (orgChartSection) orgChartSection.style.display = 'none';
         if (btnTable) btnTable.classList.add('active');
         if (btnOrgChart) btnOrgChart.classList.remove('active');
+        if (controls) controls.classList.remove('orgchart-mode');
     }
 }

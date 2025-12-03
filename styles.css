@@ -635,3 +635,7 @@ td {
     background: #dbeafe;
     color: #1e40af;
 }
+/* 조직도 뷰에서 인쇄 버튼 숨기기 */
+.controls.orgchart-mode .control-btn:nth-child(3) {
+    display: none;
+}
