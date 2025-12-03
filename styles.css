@@ -639,3 +639,18 @@ td {
 .controls.orgchart-mode .control-btn:nth-child(3) {
     display: none;
 }
+
+/* 인쇄 스타일 개선 - 더 큰 글자, 더 얇은 선 */
+@media print {
+    table {
+        font-size: 7px !important;
+    }
+    
+    th,
+    td {
+        font-size: 7px !important;
+        border: 0.3px solid #666 !important;
+        padding: 0.5mm 0.7mm !important;
+        line-height: 1.1 !important;
+    }
+}
