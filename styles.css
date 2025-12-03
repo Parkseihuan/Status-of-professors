@@ -654,3 +654,15 @@ td {
         line-height: 1.1 !important;
     }
 }
+
+/* 빈 행(이름 없는 행)의 테두리 제거 */
+tr:has(td.col-name:empty) td {
+    border: none !important;
+}
+
+/* 인쇄 시에도 빈 행 테두리 제거 */
+@media print {
+    tr:has(td.col-name:empty) td {
+        border: none !important;
+    }
+}
