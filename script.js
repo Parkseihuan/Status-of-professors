@@ -197,6 +197,11 @@ function readFile(file) {
 // --- Core Business Logic ---
 
 function processData(criteriaRows, rawRows, filename) {
+    console.log('processData called');
+    console.log('criteriaRows:', criteriaRows);
+    console.log('rawRows:', rawRows);
+    console.log('filename:', filename);
+
     // 1. Extract Date from Filename
     let dateStr = "2025.10.01."; // Default
     const dateMatch = filename.match(/(\d{8})/);
@@ -219,6 +224,8 @@ function processData(criteriaRows, rawRows, filename) {
             });
         }
     }
+
+    console.log('criteria array:', criteria);
 
     // Fill down category
     let currentCategory = '';
