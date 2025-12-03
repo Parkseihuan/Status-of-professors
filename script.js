@@ -214,12 +214,13 @@ function processData(criteriaRows, rawRows, filename) {
     const criteria = [];
     for (let i = 1; i < criteriaRows.length; i++) {
         const row = criteriaRows[i];
-        if (!row || row.length < 5) continue;
+        if (!row || row.length < 2) continue;  // Changed from 5 to 2
 
-        if (row[1] || row[4]) {
+        // Assuming row[0] is category and row[1] is position
+        if (row[0] || row[1]) {
             criteria.push({
-                category: row[1] || '',
-                position: row[4] || '',
+                category: row[0] || '',
+                position: row[1] || '',
                 original_index: i
             });
         }
