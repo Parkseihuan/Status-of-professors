@@ -493,3 +493,139 @@ td {
         padding: 6px 8px;
     }
 }
+/* ==================== ADMIN PAGE STYLES ==================== */
+
+/* Setup Container */
+.setup-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 40px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.setup-title {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+    font-weight: 600;
+    color: #003f88;
+    text-align: center;
+}
+
+.setup-subtitle {
+    margin: 0 0 32px 0;
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+}
+
+/* Upload Grid */
+.upload-grid {
+    display: grid;
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.upload-grid-three {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+/* Upload Zone */
+.upload-zone {
+    border: 2px dashed #dde3f0;
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #f9fafb;
+}
+
+.upload-zone:hover {
+    border-color: #003f88;
+    background: #f8f9ff;
+}
+
+.upload-zone.upload-zone-optional {
+    opacity: 0.7;
+}
+
+.upload-zone.active {
+    border-color: #10b981;
+    background: #f0fdf4;
+}
+
+.upload-zone .icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.upload-zone h3 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111;
+}
+
+.upload-zone .file-name {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    color: #003f88;
+    font-weight: 500;
+}
+
+.upload-zone .status {
+    margin: 0;
+    font-size: 12px;
+    color: #666;
+}
+
+/* Generate Button */
+.generate-button {
+    width: 100%;
+    padding: 16px;
+    background: #003f88;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.generate-button:hover:not(:disabled) {
+    background: #002a5c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 63, 136, 0.3);
+}
+
+.generate-button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* Status Message */
+.status-message {
+    margin-top: 16px;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.status-message.success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-message.error {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-message.info {
+    background: #dbeafe;
+    color: #1e40af;
+}
