@@ -253,8 +253,13 @@ td {
 
 .org-node.selected {
     background: #fffbeb;
-    border: 2px solid #fbbf24;
+    border: 2px solid #f59e0b;
     font-weight: 600;
+    outline: 3px solid #fbbf24;
+    outline-offset: 2px;
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+    z-index: 10;
+    position: relative;
 }
 
 .org-node.root {
@@ -493,6 +498,7 @@ td {
         padding: 6px 8px;
     }
 }
+
 /* ==================== ADMIN PAGE STYLES ==================== */
 
 /* Setup Container */
