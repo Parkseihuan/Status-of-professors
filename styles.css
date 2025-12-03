@@ -1,4 +1,4 @@
-ï»¿/* ê¸°ë³¸ ìŠ¤íƒ€ì¼ */
+/* ±âº» ½ºÅ¸ÀÏ */
 body {
     font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     margin: 0;
@@ -7,7 +7,7 @@ body {
     color: #222;
 }
 
-/* í—¤ë” */
+/* Çì´õ */
 header {
     background: #003f88;
     color: white;
@@ -27,14 +27,14 @@ header p {
     opacity: 0.9;
 }
 
-/* ë©”ì¸ ì»¨í…Œì´ë„ˆ */
+/* ¸ŞÀÎ ÄÁÅ×ÀÌ³Ê */
 main {
     padding: 24px;
     max-width: 1400px;
     margin: 0 auto;
 }
 
-/* ë·° ì„ íƒ ë²„íŠ¼ */
+/* ºä ¼±ÅÃ ¹öÆ° */
 .view-selector {
     display: flex;
     gap: 8px;
@@ -65,7 +65,7 @@ main {
     border-color: #003f88;
 }
 
-/* ì»¨íŠ¸ë¡¤ ë²„íŠ¼ */
+/* ÄÁÆ®·Ñ ¹öÆ° */
 .controls {
     display: flex;
     gap: 8px;
@@ -90,7 +90,7 @@ main {
     border-color: #003f88;
 }
 
-/* í…Œì´ë¸” ìŠ¤íƒ€ì¼ */
+/* Å×ÀÌºí ½ºÅ¸ÀÏ */
 #table-container {
     background: white;
     border-radius: 8px;
@@ -122,14 +122,14 @@ td {
     color: #4b5563;
 }
 
-/* ì¹´í…Œê³ ë¦¬ ì…€ */
+/* Ä«Å×°í¸® ¼¿ */
 .category-cell {
     background: #f3f4f6;
     font-weight: 600;
     color: #111827;
 }
 
-/* ê²¸ì§ì ê°•ì¡° - í´ë¦­ ì‹œì—ë§Œ */
+/* °âÁ÷ÀÚ °­Á¶ - Å¬¸¯ ½Ã¿¡¸¸ */
 .col-name[data-name] {
     cursor: pointer;
     transition: all 0.2s;
@@ -156,7 +156,7 @@ td {
     vertical-align: middle;
 }
 
-/* ê°„ê²© ì…€ */
+/* °£°İ ¼¿ */
 .gap-cell,
 .col-gap {
     border: none !important;
@@ -164,7 +164,7 @@ td {
     width: 20px;
 }
 
-/* ì¡°ì§ë„ ìŠ¤íƒ€ì¼ - íŠ¸ë¦¬ êµ¬ì¡° */
+/* Á¶Á÷µµ ½ºÅ¸ÀÏ - Æ®¸® ±¸Á¶ */
 #org-chart-section {
     background: white;
     border-radius: 8px;
@@ -183,7 +183,7 @@ td {
     padding: 20px;
 }
 
-/* íŠ¸ë¦¬ ìŠ¤íƒ€ì¼ (ìƒ˜í”Œ ì°¸ê³ ) */
+/* Æ®¸® ½ºÅ¸ÀÏ (»ùÇÃ Âü°í) */
 .tree {
     margin: 10px 0;
     padding: 0;
@@ -197,7 +197,7 @@ td {
     position: relative;
 }
 
-/* ì„¸ë¡œ ì„  */
+/* ¼¼·Î ¼± */
 .tree ul::before {
     content: "";
     border-left: 1px solid #ccd3e4;
@@ -213,7 +213,7 @@ td {
     position: relative;
 }
 
-/* ê°€ë¡œ ì„  */
+/* °¡·Î ¼± */
 .tree li::before {
     content: "";
     border-top: 1px solid #ccd3e4;
@@ -223,7 +223,7 @@ td {
     width: 12px;
 }
 
-/* ë§ˆì§€ë§‰ ìš”ì†Œì˜ ì„¸ë¡œì„  ëŠê¸° */
+/* ¸¶Áö¸· ¿ä¼ÒÀÇ ¼¼·Î¼± ²÷±â */
 .tree li:last-child::after {
     content: "";
     position: absolute;
@@ -279,7 +279,7 @@ td {
     background: #f8f9ff;
 }
 
-/* íˆ´íŒ */
+/* ÅøÆÁ */
 .custom-tooltip {
     position: absolute;
     background: rgba(0, 0, 0, 0.85);
@@ -294,7 +294,7 @@ td {
     line-height: 1.4;
 }
 
-/* ëª¨ë‹¬ */
+/* ¸ğ´Ş */
 .summary-modal {
     position: fixed;
     top: 50%;
@@ -359,7 +359,7 @@ td {
     color: #f59e0b;
 }
 
-/* ì¸ì‡„ ìŠ¤íƒ€ì¼ */
+/* ÀÎ¼â ½ºÅ¸ÀÏ */
 @media print {
     @page {
         size: A4;
@@ -405,7 +405,7 @@ td {
 
     table {
         page-break-inside: avoid;
-        font-size: 6px !important;
+        font-size: 7px !important;
         border: none;
     }
 
@@ -420,10 +420,10 @@ td {
 
     th,
     td {
-        padding: 0.4mm 0.6mm !important;
-        font-size: 6px !important;
-        border: 1px solid #000 !important;
-        line-height: 1.05 !important;
+        padding: 0.5mm 0.7mm !important;
+        font-size: 7px !important;
+        border: 0.3px solid #666 !important;
+        line-height: 1.1 !important;
     }
 
     th {
@@ -467,7 +467,7 @@ td {
     }
 }
 
-/* ë°˜ì‘í˜• */
+/* ¹İÀÀÇü */
 @media (max-width: 768px) {
     main {
         padding: 16px;
@@ -635,12 +635,12 @@ td {
     background: #dbeafe;
     color: #1e40af;
 }
-/* ì¡°ì§ë„ ë·°ì—ì„œ ì¸ì‡„ ë²„íŠ¼ ìˆ¨ê¸°ê¸° */
+/* Á¶Á÷µµ ºä¿¡¼­ ÀÎ¼â ¹öÆ° ¼û±â±â */
 .controls.orgchart-mode .control-btn:nth-child(3) {
     display: none;
 }
 
-/* ì¸ì‡„ ìŠ¤íƒ€ì¼ ê°œì„  - ë” í° ê¸€ì, ë” ì–‡ì€ ì„  */
+/* ÀÎ¼â ½ºÅ¸ÀÏ °³¼± - ´õ Å« ±ÛÀÚ, ´õ ¾ãÀº ¼± */
 @media print {
     table {
         font-size: 7px !important;
