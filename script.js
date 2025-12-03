@@ -254,6 +254,7 @@ function processData(criteriaRows, rawRows, filename) {
     const stateIdx = headers.indexOf('발령상태');
 
     const activePositions = [];
+    const today = new Date();
 
     for (let i = headerRowIndex + 1; i < rawRows.length; i++) {
         const row = rawRows[i];
@@ -261,9 +262,37 @@ function processData(criteriaRows, rawRows, filename) {
 
         const name = row[nameIdx];
         const position = row[posIdx];
+        const endDate = row[endIdx];
         const state = stateIdx !== -1 ? row[stateIdx] : '재직';
 
         if (!name || !position) continue;
+
+        // Check if position is still active based on end date
+        if (endDate) {
+            let endDateObj;
+            if (typeof endDate === 'number') {
+                // Excel date number
+                const excelDate = XLSX.SSF.parse_date_code(endDate);
+                endDateObj = new Date(excelDate.y, excelDate.m - 1, excelDate.d);
+            } else {
+                // String date
+                const str = String(endDate).replace(/[^0-9]/g, '');
+                if (str.length === 8) {
+                    endDateObj = new Date(
+                        parseInt(str.substring(0, 4)),
+                        parseInt(str.substring(4, 6)) - 1,
+                        parseInt(str.substring(6, 8))
+                    );
+                }
+            }
+
+            // Skip if end date is in the past
+            if (endDateObj && endDateObj < today) {
+                continue;
+            }
+        }
+
+        // Also check state
         if (state && !state.includes('재직') && !state.includes('유지')) continue;
 
         activePositions.push({
