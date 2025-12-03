@@ -361,7 +361,14 @@ function calculateSimilarity(s1, s2) {
 // --- Rendering Logic ---
 
 function renderTable(data) {
+    console.log('renderTable called with data:', data);
     const container = document.getElementById('table-container');
+    console.log('table-container element:', container);
+
+    if (!container) {
+        console.error('table-container not found!');
+        return;
+    }
 
     const table = document.createElement('table');
     table.className = 'two-column-table';
