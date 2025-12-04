@@ -147,16 +147,18 @@ async function generateReport() {
             }
         }
 
-        // 5. Render
-        document.getElementById('setup-container').style.display = 'none';
-        document.getElementById('generated-view-wrapper').style.display = 'block';
-        window.processedData = currentProcessedData;
-
-        // Update Title and Date
-        document.getElementById('page-title').textContent = currentProcessedData.title;
-        document.getElementById('page-date').textContent = currentProcessedData.date;
-
-        renderTable(currentProcessedData);
+        // 5. Check for unmatched positions and show review modal if needed
+        if (currentProcessedData.unmatchedCriteria && currentProcessedData.unmatchedCriteria.length > 0) {
+            // Show review modal
+            showMatchReviewModal(currentProcessedData.unmatchedCriteria, currentProcessedData.potentialMatches);
+            
+            // Set up event listeners for modal buttons
+            document.getElementById('btn-approve-matches').onclick = applyApprovedMappings;
+            document.getElementById('btn-skip-matches').onclick = skipMatches;
+        } else {
+            // No unmatched positions, proceed directly
+            generateFinalReport();
+        }
 
     } catch (error) {
         console.error(error);
@@ -304,16 +306,37 @@ function processData(criteriaRows, rawRows, filename) {
 
     // 4. Match Criteria
     const finalRows = [];
+    const unmatchedCriteria = [];
+    const potentialMatches = {};
 
     criteria.forEach(crit => {
         const match = findBestMatch(crit.position, activePositions);
 
-        finalRows.push({
-            category: crit.category,
-            position: crit.position,
-            name: match ? match.name : '',
-            period: match ? match.period : ''
-        });
+        if (match) {
+            finalRows.push({
+                category: crit.category,
+                position: crit.position,
+                name: match.name,
+                period: match.period
+            });
+        } else {
+            // No exact or high-confidence match found
+            // Look for potential matches for manual review
+            const suggestions = findPotentialMatches(crit.position, activePositions, 0.5);
+
+            if (suggestions.length > 0) {
+                unmatchedCriteria.push(crit);
+                potentialMatches[crit.position] = suggestions;
+            }
+
+            // Add empty row for now
+            finalRows.push({
+                category: crit.category,
+                position: crit.position,
+                name: '',
+                period: ''
+            });
+        }
     });
 
     // 5. Split into Left/Right
@@ -337,7 +360,9 @@ function processData(criteriaRows, rawRows, filename) {
             left: ['구분', '보 직 명', '성 명', '기 간'],
             right: ['구분', '보 직 명', '성 명', '기 간']
         },
-        rows: combinedRows
+        rows: combinedRows,
+        unmatchedCriteria: unmatchedCriteria,
+        potentialMatches: potentialMatches
     };
 }
 
@@ -393,6 +418,24 @@ function calculateSimilarity(s1, s2) {
     if (n1.includes(n2)) return 0.8;
 
     return 0;
+}
+
+// Find potential matches for manual review with lower threshold
+function findPotentialMatches(targetPos, activeList, threshold = 0.5) {
+    const matches = [];
+
+    activeList.forEach(p => {
+        const score = calculateSimilarity(targetPos, p.position);
+        if (score >= threshold && score < 0.8) {  // Between threshold and auto-match threshold
+            matches.push({
+                ...p,
+                score: score
+            });
+        }
+    });
+
+    // Sort by score descending
+    return matches.sort((a, b) => b.score - a.score);
 }
 
 // --- Rendering Logic ---
@@ -794,4 +837,95 @@ function switchView(viewName) {
         if (btnOrgChart) btnOrgChart.classList.remove('active');
         if (controls) controls.classList.remove('orgchart-mode');
     }
+}
+
+// --- Match Review Modal Logic ---
+
+function showMatchReviewModal(unmatchedCriteria, potentialMatches) {
+    const modal = document.getElementById('match-review-modal');
+    const list = document.getElementById('match-review-list');
+    
+    if (!modal || !list) return;
+    
+    list.innerHTML = '';
+    
+    unmatchedCriteria.forEach(crit => {
+        const suggestions = potentialMatches[crit.position];
+        const item = createMatchReviewItem(crit, suggestions);
+        list.appendChild(item);
+    });
+    
+    modal.style.display = 'flex';
+}
+
+function createMatchReviewItem(criteria, suggestions) {
+    const div = document.createElement('div');
+    div.className = 'match-review-item';
+    
+    const criteriaDiv = document.createElement('div');
+    criteriaDiv.className = 'match-criteria';
+    criteriaDiv.innerHTML = <strong>기준:</strong>  - ;
+    
+    const suggestionsDiv = document.createElement('div');
+    suggestionsDiv.className = 'match-suggestions';
+    suggestionsDiv.innerHTML = '<strong>제안:</strong>';
+    
+    const select = document.createElement('select');
+    select.className = 'match-select';
+    select.dataset.position = criteria.position;
+    
+    const emptyOption = document.createElement('option');
+    emptyOption.value = '';
+    emptyOption.textContent = '선택 안함';
+    select.appendChild(emptyOption);
+    
+    suggestions.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s.position;
+        option.textContent = ${s.name} -  (유사도: %);
+        select.appendChild(option);
+    });
+    
+    suggestionsDiv.appendChild(select);
+    
+    div.appendChild(criteriaDiv);
+    div.appendChild(suggestionsDiv);
+    
+    return div;
+}
+
+function applyApprovedMappings() {
+    const selects = document.querySelectorAll('.match-select');
+    const mappings = {};
+    
+    selects.forEach(select => {
+        if (select.value) {
+            const criteriaPos = select.dataset.position;
+            const dataPos = select.value;
+            mappings[criteriaPos] = dataPos;
+        }
+    });
+    
+    window.approvedMappings = mappings;
+    
+    document.getElementById('match-review-modal').style.display = 'none';
+    
+    // Regenerate report with approved mappings
+    generateFinalReport();
+}
+
+function skipMatches() {
+    document.getElementById('match-review-modal').style.display = 'none';
+    generateFinalReport();
+}
+
+function generateFinalReport() {
+    document.getElementById('setup-container').style.display = 'none';
+    document.getElementById('generated-view-wrapper').style.display = 'block';
+    window.processedData = currentProcessedData;
+    
+    document.getElementById('page-title').textContent = currentProcessedData.title;
+    document.getElementById('page-date').textContent = currentProcessedData.date;
+    
+    renderTable(currentProcessedData);
 }

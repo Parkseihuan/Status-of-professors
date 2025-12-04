@@ -666,3 +666,108 @@ tr:has(td.col-name:empty) td {
         border: none !important;
     }
 }
+
+/* Match Review Modal */
+.match-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+}
+
+.match-modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.match-modal-content h2 {
+    margin: 0 0 8px 0;
+    color: #003f88;
+    font-size: 24px;
+}
+
+.match-modal-content p {
+    margin: 0 0 24px 0;
+    color: #666;
+}
+
+.match-review-list {
+    margin-bottom: 24px;
+}
+
+.match-review-item {
+    padding: 16px;
+    border: 1px solid #dde3f0;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    background: #f9fafb;
+}
+
+.match-criteria {
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.match-criteria strong {
+    color: #003f88;
+}
+
+.match-suggestions strong {
+    color: #003f88;
+    font-size: 14px;
+}
+
+.match-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #dde3f0;
+    border-radius: 6px;
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+.match-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn-primary {
+    padding: 12px 24px;
+    background: #003f88;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background: #002a5c;
+}
+
+.btn-secondary {
+    padding: 12px 24px;
+    background: white;
+    color: #003f88;
+    border: 1px solid #003f88;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background: #f8f9ff;
+}
