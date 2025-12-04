@@ -151,7 +151,7 @@ async function generateReport() {
         if (currentProcessedData.unmatchedCriteria && currentProcessedData.unmatchedCriteria.length > 0) {
             // Show review modal
             showMatchReviewModal(currentProcessedData.unmatchedCriteria, currentProcessedData.potentialMatches);
-            
+
             // Set up event listeners for modal buttons
             document.getElementById('btn-approve-matches').onclick = applyApprovedMappings;
             document.getElementById('btn-skip-matches').onclick = skipMatches;
@@ -844,60 +844,61 @@ function switchView(viewName) {
 function showMatchReviewModal(unmatchedCriteria, potentialMatches) {
     const modal = document.getElementById('match-review-modal');
     const list = document.getElementById('match-review-list');
-    
+
     if (!modal || !list) return;
-    
+
     list.innerHTML = '';
-    
+
     unmatchedCriteria.forEach(crit => {
         const suggestions = potentialMatches[crit.position];
         const item = createMatchReviewItem(crit, suggestions);
         list.appendChild(item);
     });
-    
+
     modal.style.display = 'flex';
 }
+
 
 function createMatchReviewItem(criteria, suggestions) {
     const div = document.createElement('div');
     div.className = 'match-review-item';
-    
+
     const criteriaDiv = document.createElement('div');
     criteriaDiv.className = 'match-criteria';
-    criteriaDiv.innerHTML = <strong>기준:</strong>  - ;
-    
+    criteriaDiv.innerHTML = `<strong>기준:</strong> ${criteria.category} - ${criteria.position}`;
+
     const suggestionsDiv = document.createElement('div');
     suggestionsDiv.className = 'match-suggestions';
     suggestionsDiv.innerHTML = '<strong>제안:</strong>';
-    
+
     const select = document.createElement('select');
     select.className = 'match-select';
     select.dataset.position = criteria.position;
-    
+
     const emptyOption = document.createElement('option');
     emptyOption.value = '';
     emptyOption.textContent = '선택 안함';
     select.appendChild(emptyOption);
-    
+
     suggestions.forEach(s => {
         const option = document.createElement('option');
         option.value = s.position;
-        option.textContent = ${s.name} -  (유사도: %);
+        option.textContent = `${s.name} - ${s.position} (유사도: ${(s.score * 100).toFixed(0)}%)`;
         select.appendChild(option);
     });
-    
+
     suggestionsDiv.appendChild(select);
-    
+
     div.appendChild(criteriaDiv);
     div.appendChild(suggestionsDiv);
-    
+
     return div;
 }
 
 function applyApprovedMappings() {
     const selects = document.querySelectorAll('.match-select');
     const mappings = {};
-    
+
     selects.forEach(select => {
         if (select.value) {
             const criteriaPos = select.dataset.position;
@@ -905,11 +906,11 @@ function applyApprovedMappings() {
             mappings[criteriaPos] = dataPos;
         }
     });
-    
+
     window.approvedMappings = mappings;
-    
+
     document.getElementById('match-review-modal').style.display = 'none';
-    
+
     // Regenerate report with approved mappings
     generateFinalReport();
 }
@@ -923,9 +924,9 @@ function generateFinalReport() {
     document.getElementById('setup-container').style.display = 'none';
     document.getElementById('generated-view-wrapper').style.display = 'block';
     window.processedData = currentProcessedData;
-    
+
     document.getElementById('page-title').textContent = currentProcessedData.title;
     document.getElementById('page-date').textContent = currentProcessedData.date;
-    
+
     renderTable(currentProcessedData);
 }
